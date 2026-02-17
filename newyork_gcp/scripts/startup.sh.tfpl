@@ -1,0 +1,91 @@
+#!/bin/bash
+set -euo pipefail
+
+# Explanation Galactus does not trust public networks; he makes the clinic self-contained.
+# This script:
+# 1) installs nginx + python
+# 2) generates a self-signed cert
+# 3) hosts a tiny HTTPS app endpoint with /health on 443
+# 4) includes a DB connect test to Tokyo RDS over the VPN corridor
+
+TOKYO_RDS_HOST="${tokyo_rds_host}"
+TOKYO_RDS_PORT="${tokyo_rds_port}"
+TOKYO_RDS_USER="${tokyo_rds_user}"
+SECRET_NAME="${secret_name}"
+
+apt-get update -y
+apt-get install -y nginx python3 python3-pip jq
+
+pip3 install --no-cache-dir pymysql
+
+# Fetch DB password from Secret Manager (no TF state leakage)
+DB_PASS="$(gcloud secrets versions access latest --secret="$${SECRET_NAME}")"
+
+mkdir -p /etc/nginx/certs
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/nginx/certs/self.key \
+  -out /etc/nginx/certs/self.crt \
+  -subj "/CN=nihonmachi-internal.local"
+
+cat > /var/www/html/index.html <<EOF
+<h1>Nihonmachi Clinic (Private)</h1>
+<p>Only reachable via VPN corridor.</p>
+EOF
+
+cat > /usr/local/bin/rds_test.py <<'PY'
+import os, pymysql, json, datetime
+
+host = os.environ.get("TOKYO_RDS_HOST")
+port = int(os.environ.get("TOKYO_RDS_PORT","3306"))
+user = os.environ.get("TOKYO_RDS_USER")
+pw   = os.environ.get("TOKYO_RDS_PASS")
+db   = os.environ.get("TOKYO_RDS_DB","galactus")
+
+def main():
+    # Minimal proof: write a timestamp row then read it back.
+    conn = pymysql.connect(host=host, port=port, user=user, password=pw, database=db, connect_timeout=5)
+    with conn.cursor() as cur:
+        cur.execute("CREATE TABLE IF NOT EXISTS clinic_ping (id INT AUTO_INCREMENT PRIMARY KEY, ts VARCHAR(64))")
+        ts = datetime.datetime.utcnow().isoformat()
+        cur.execute("INSERT INTO clinic_ping (ts) VALUES (%s)", (ts,))
+        conn.commit()
+        cur.execute("SELECT ts FROM clinic_ping ORDER BY id DESC LIMIT 1")
+        row = cur.fetchone()
+    conn.close()
+    print(json.dumps({"status":"ok","latest_ts": row[0]}, indent=2))
+
+if __name__ == "__main__":
+    main()
+PY
+
+chmod +x /usr/local/bin/rds_test.py
+
+# Nginx HTTPS config
+cat > /etc/nginx/sites-available/default <<EOF
+server {
+  listen 443 ssl;
+  ssl_certificate /etc/nginx/certs/self.crt;
+  ssl_certificate_key /etc/nginx/certs/self.key;
+
+  location /health {
+    return 200 "ok\n";
+  }
+
+  location / {
+    root /var/www/html;
+    index index.html;
+  }
+}
+EOF
+
+systemctl enable nginx
+systemctl restart nginx
+
+# Export env for DB test
+cat > /etc/profile.d/tokyo_rds.sh <<EOF
+export TOKYO_RDS_HOST="$${TOKYO_RDS_HOST}"
+export TOKYO_RDS_PORT="$${TOKYO_RDS_PORT}"
+export TOKYO_RDS_USER="$${TOKYO_RDS_USER}"
+export TOKYO_RDS_PASS="$${DB_PASS}"
+export TOKYO_RDS_DB="galactus"
+EOF

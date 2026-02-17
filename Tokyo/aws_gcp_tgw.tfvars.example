@@ -1,0 +1,26 @@
+# AWS <-> GCP TGW VPN starter values (Tokyo stack)
+# Copy needed values into Tokyo/terraform.tfvars (or a separate *.tfvars file).
+
+enable_aws_gcp_tgw_vpn = true
+
+# BGP ASNs
+tokyo_tgw_asn      = 65501
+gcp_cloud_router_asn = 65515
+
+# GCP HA VPN public interface IPs
+gcp_ha_vpn_interface_0_ip = "REPLACE_WITH_GCP_HA_VPN_IF0_PUBLIC_IP"
+gcp_ha_vpn_interface_1_ip = "REPLACE_WITH_GCP_HA_VPN_IF1_PUBLIC_IP"
+
+# Inside tunnel CIDRs in order: t1, t2, t3, t4
+aws_gcp_tunnel_inside_cidrs = [
+  "169.254.0.8/30",
+  "169.254.0.12/30",
+  "169.254.0.16/30",
+  "169.254.0.20/30"
+]
+
+# Pre-shared keys
+aws_gcp_psk_tunnel_1 = "REPLACE_WITH_PSK_1"
+aws_gcp_psk_tunnel_2 = "REPLACE_WITH_PSK_2"
+aws_gcp_psk_tunnel_3 = "REPLACE_WITH_PSK_3"
+aws_gcp_psk_tunnel_4 = "REPLACE_WITH_PSK_4"
