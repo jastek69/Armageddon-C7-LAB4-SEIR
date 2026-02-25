@@ -55,6 +55,7 @@ override.tf.json
 .terraform\
 
 tfplan*
+*.tfplan
 tfplan_infra
 tfplan_bootstrap
 plan
@@ -76,6 +77,7 @@ terraform.rc
 
 # Ignore keys
 *.pem
+*.csr
 
 # NOTE: JSON files are currently allowed. If you want to block all JSON again,
 # uncomment the next line:

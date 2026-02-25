@@ -308,7 +308,8 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "sao_vpc_attachment" {
 
 # Accept peering connection from Tokyo
 resource "aws_ec2_transit_gateway_peering_attachment_accepter" "sao_accept_peering" {
-  transit_gateway_attachment_id = data.terraform_remote_state.tokyo.outputs.tokyo_sao_peering_id
+  count = local.tokyo_sao_peering_id != "" ? 1 : 0
+  transit_gateway_attachment_id = local.tokyo_sao_peering_id
 
   tags = merge(local.common_tags, {
     Name = "sao-accept-tokyo-peering"
@@ -421,6 +422,17 @@ resource "aws_autoscaling_group" "sao_app_asg" {
   launch_template {
     id      = aws_launch_template.sao_app_template.id
     version = "$Latest"
+  }
+
+  # Roll instances when the launch template/user data changes (hotfixes, patches).
+  instance_refresh {
+    strategy = "Rolling"
+    triggers = ["launch_template"]
+
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 120
+    }
   }
 
   tag {

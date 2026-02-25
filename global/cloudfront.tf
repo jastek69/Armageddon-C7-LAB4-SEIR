@@ -11,7 +11,7 @@ resource "aws_cloudfront_distribution" "galactus_cf01" {
   comment         = "${var.project_name}-cf01"
 
   logging_config {
-    bucket          = data.aws_s3_bucket.cloudfront_logs.bucket_domain_name
+    bucket          = aws_s3_bucket.cloudfront_logs.bucket_domain_name
     prefix          = "cloudfront/"
     include_cookies = false
   }

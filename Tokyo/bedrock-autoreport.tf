@@ -15,6 +15,7 @@ data "archive_file" "tokyo_ir_lambda_zip" {
 # Explanation: The incident reports archive—Galactus's digital filing cabinet for postmortem artifacts.
 resource "aws_s3_bucket" "tokyo_ir_reports_bucket" {
   bucket = "${var.project_name}-tokyo-incident-reports-${data.aws_caller_identity.tokyo_self01.account_id}"
+  force_destroy = var.force_destroy
 
   tags = merge(var.common_tags, {
     Name        = "${var.project_name}-tokyo-incident-reports"

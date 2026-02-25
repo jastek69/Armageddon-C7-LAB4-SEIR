@@ -140,6 +140,11 @@ Run from `LAB3` root:
 bash ./terraform_startup.sh
 ```
 
+Windows Line Endings Fix (if scripts fail with /usr/bin/env)
+```bash
+sed -i 's/\r$//' terraform_startup.sh terraform_apply.sh
+```
+
 Deployment order in script:
 1. `Tokyo`
 2. `global`
@@ -209,6 +214,26 @@ Destroy order in script:
 
 Optional Alerting
 - Tokyo RDS flow log alerting is gated by `enable_rds_flowlog_alarm` in [Tokyo/variables_aws_gcp_tgw.tf](Tokyo/variables_aws_gcp_tgw.tf); default is off.
+
+### 🔐 ACM Certificates
+- **CloudFront**: ACM certificate in us-east-1 for the public CNAMEs.
+- **Tokyo ALB Origin**: Separate ACM certificate in ap-northeast-1 for the origin hostname.
+- **GCP Internal ILB**: CAS-issued certificate for the internal HTTPS endpoint.
+  - CAS pool: `nihonmachi-cas-pool` (us-central1)
+  - CA: `nihonmachi-root-ca`
+  - Common name/SAN: `nihonmachi.internal.jastek.click`
+  - ILB IP: output `nihonmachi_ilb_ip` in [newyork_gcp/outputs.tf](newyork_gcp/outputs.tf#L9-L12)
+
+### Tunnel Rotation References
+
+![alt text](image.png)
+
+- AWS Site-to-Site VPN tunnel changes: https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-connection.html
+- AWS VPN tunnel options: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html
+- GCP HA VPN concepts: https://cloud.google.com/network-connectivity/docs/vpn/concepts/ha-vpn
+- GCP HA VPN with Cloud Router: https://cloud.google.com/network-connectivity/docs/router/how-to/creating-ha-vpn
+- GCP VPN monitoring: https://cloud.google.com/network-connectivity/docs/vpn/how-to/monitor-vpn
+  - Private DNS: A record in [Tokyo/route53-private-ilb.tf](Tokyo/route53-private-ilb.tf#L9-L22)
 
 ## Module Usage Examples
 

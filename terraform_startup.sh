@@ -1,5 +1,5 @@
-﻿#!/usr/bin/env bash
-# LAB3 multi-stack Terraform deployment
+#!/usr/bin/env bash
+# LAB4 multi-stack Terraform deployment
 # Order: GCP seed -> Tokyo -> Global -> New York GCP -> Sao Paulo
 # Maintainer note: active stacks are in `Tokyo/`, `global/`, `newyork_gcp/`, `saopaulo/`; legacy root Terraform files are in `archive/root-terraform-from-root/`.
 
@@ -37,7 +37,7 @@ run_apply_targets() {
   cd - >/dev/null
 }
 
-echo "Starting LAB3 deployment: GCP seed -> Tokyo -> Global -> New York GCP -> Sao Paulo"
+echo "Starting LAB4 deployment: GCP seed -> Tokyo -> Global -> New York GCP -> Sao Paulo"
 
 # Stage 0: GCP seed (HA VPN public IPs)
 run_apply_targets "newyork_gcp" "gcp-seed.tfplan" \
@@ -96,7 +96,7 @@ echo "Sao Paulo ALB:         $SAO_ALB_DNS"
 
 if [[ "$TOKYO_TGW_ID" != "Not found" && "$CF_DIST_ID" != "Not found" && "$SAO_TGW_ID" != "Not found" ]]; then
   echo ""
-  echo "LAB3 deployment complete."
+  echo "LAB4 deployment complete."
 else
   echo ""
   echo "Deployment finished with missing outputs. Review stack logs above."

@@ -106,6 +106,32 @@ output "sns_topic_alerts_arn" {
   value       = module.monitoring.alerts_topic_arn
 }
 
+# VPC Endpoint Outputs
+output "sao_s3_gateway_endpoint_id" {
+  description = "ID of the Sao Paulo S3 gateway endpoint"
+  value       = aws_vpc_endpoint.sao_s3_gateway.id
+}
+
+output "sao_vpc_endpoint_ids" {
+  description = "Sao Paulo VPC endpoint IDs."
+  value = {
+    ssm         = aws_vpc_endpoint.sao_ssm.id
+    ec2messages = aws_vpc_endpoint.sao_ec2messages.id
+    ssmmessages = aws_vpc_endpoint.sao_ssmmessages.id
+    logs        = aws_vpc_endpoint.sao_logs.id
+  }
+}
+
+output "sao_vpc_endpoint_dns" {
+  description = "Sao Paulo VPC endpoint DNS names (interface endpoints)."
+  value = {
+    ssm         = [for entry in aws_vpc_endpoint.sao_ssm.dns_entry : entry.dns_name]
+    ec2messages = [for entry in aws_vpc_endpoint.sao_ec2messages.dns_entry : entry.dns_name]
+    ssmmessages = [for entry in aws_vpc_endpoint.sao_ssmmessages.dns_entry : entry.dns_name]
+    logs        = [for entry in aws_vpc_endpoint.sao_logs.dns_entry : entry.dns_name]
+  }
+}
+
 # Region Information
 output "region" {
   description = "AWS region"

@@ -94,6 +94,33 @@ terraform apply
 - [ ] ALB health checks passing
 - [ ] Database connectivity from São Paulo
 
+## Partial Reset Scenarios
+
+### Global Only (CloudFront/WAF/Route53)
+- [ ] Keep Tokyo and São Paulo intact
+- [ ] Destroy: `(cd global && terraform destroy)`
+- [ ] Re-apply when ready; confirm `tokyo_state_key` in [global/terraform.tfvars](global/terraform.tfvars)
+
+### São Paulo Only (Compute Spoke)
+- [ ] Keep Tokyo intact
+- [ ] Destroy: `(cd saopaulo && terraform destroy)`
+- [ ] Re-apply; validate `tokyo_state_key` in [saopaulo/terraform.tfvars](saopaulo/terraform.tfvars) and TGW peering outputs before apply
+
+### Tokyo Only (Data Authority)
+- [ ] Avoid if São Paulo or global still depend on Tokyo outputs
+- [ ] Destroy order: global -> saopaulo -> Tokyo
+- [ ] Rebuild Tokyo first, then re-apply dependents
+
+### New York GCP Only
+- [ ] Keep AWS stacks intact
+- [ ] Destroy: `(cd newyork_gcp && terraform destroy)`
+- [ ] Re-apply when ready
+- [ ] If Tokyo state is missing, set `enable_aws_gcp_tgw_vpn = false` in [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars)
+
+### Remote State Refresh Only
+- [ ] Change keys or buckets
+- [ ] Run `terraform init -reconfigure` in each affected stack
+
 ## Critical Success Factors
 
 ### 1. State Management ✅

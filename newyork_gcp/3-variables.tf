@@ -34,6 +34,18 @@ variable "tokyo_state_region" {
   default     = "ap-northeast-1"
 }
 
+variable "enable_aws_gcp_tgw_vpn" {
+  description = "Enable AWS <-> GCP TGW VPN resources and Tokyo remote state lookups."
+  type        = bool
+  default     = true
+}
+
+variable "enable_gcp_router_destroy" {
+  description = "Expose the GCP router for import/destroy even when VPN is disabled."
+  type        = bool
+  default     = false
+}
+
 
 
 
@@ -166,8 +178,3 @@ variable "ilb_cert_sans" {
   default     = ["nihonmachi.internal.jastek.click"]
 }
 
-variable "allow_vpn_destroy" {
-  description = "Allow VPN gateway/tunnel resources to be destroyed (use only during controlled rotation)."
-  type        = bool
-  default     = false
-}

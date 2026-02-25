@@ -9,7 +9,7 @@ output "cloudfront_distribution_domain_name" {
 }
 
 output "cloudfront_logs_bucket" {
-  value       = data.aws_s3_bucket.cloudfront_logs.bucket
+  value       = aws_s3_bucket.cloudfront_logs.bucket
   description = "CloudFront standard logs bucket."
 }
 

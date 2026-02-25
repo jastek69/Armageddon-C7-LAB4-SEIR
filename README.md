@@ -1,4 +1,4 @@
-Lab 3A — Japan Medical
+Lab 4 — Japan Medical
 Cross-Region Architecture with Transit Gateway (APPI-Compliant)
 
 This designed is a multi-region medical application where all PHI remains in Japan to comply with APPI.
@@ -107,7 +107,7 @@ The entire path stays on the AWS backbone and is encrypted in transit.
 
 🌐 Single Global URL
 
-There is only one public URL: https://chewbacca-growls.com
+There is only one public URL: https://jastek.click
 
 CloudFront:
     Terminates TLS
@@ -120,6 +120,65 @@ CloudFront is allowed because:
     it is not a database
     it does not persist PHI
     it respects cache-control rules
+
+ACM Certificates
+- CloudFront uses an ACM certificate in us-east-1 for the public CNAMEs.
+- Tokyo ALB uses a separate ACM certificate in ap-northeast-1 for the origin hostname.
+- GCP internal HTTPS ILB uses a CAS-issued certificate for the private service endpoint.
+  - CAS pool: `nihonmachi-cas-pool` (us-central1)
+  - CA: `nihonmachi-root-ca`
+  - Common name/SAN: `nihonmachi.internal.jastek.click`
+  - ILB IP: output `nihonmachi_ilb_ip` in [newyork_gcp/outputs.tf](newyork_gcp/outputs.tf#L9-L12)
+  - Private DNS: A record in [Tokyo/route53-private-ilb.tf](Tokyo/route53-private-ilb.tf#L9-L22)
+
+Windows Line Endings Fix (if scripts fail with /usr/bin/env)
+```bash
+sed -i 's/\r$//' terraform_startup.sh terraform_apply.sh
+```
+
+# Terraform Build & Destroy
+
+Apply Notes:
+
+- Run from the repo root using Git Bash or WSL (scripts are bash).
+- If backend keys or buckets changed, run `terraform init -reconfigure` in each stack folder first.
+- Set `TF_VAR_db_password` before applying Tokyo.
+- Use `./terraform_startup.sh` to apply in the correct order (GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo).
+- For New York GCP teardown without Tokyo state, set `enable_aws_gcp_tgw_vpn = false` in [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars) to skip Tokyo remote state lookups and disable the GCP VPN resources that depend on those outputs.
+
+Destroy Notes:
+
+- Use `./terraform_destroy.sh` from the repo root.
+- Destroy order is dependency-safe: global -> newyork_gcp -> saopaulo -> Tokyo.
+- The script prompts for confirmation and destroys all stacks listed.
+- To allow VPN teardown in New York GCP, set `prevent_destroy = false` in the VPN lifecycle blocks in [newyork_gcp/5-gcp-vpn-connections.tf](newyork_gcp/5-gcp-vpn-connections.tf), then restore it to `true` after.
+
+Reset Checklist (clean apply/destroy)
+
+- Confirm what must be retained (Route53 public zone, ACM certs) before any destroy.
+- Verify all backend keys and remote state keys match the current deployment in the Remote State Key Checklist below; run `terraform init -reconfigure` in each stack after changes.
+- For a full destroy, set `enable_aws_gcp_tgw_vpn = false` in [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars) if Tokyo state is missing, and ensure VPN lifecycle `prevent_destroy` is set to `false` while tearing down.
+- If you need S3 buckets to delete cleanly, keep `force_destroy = true` in [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars) during destroy, then restore to `false` after.
+- Run `./terraform_destroy.sh` from repo root and confirm all four stacks complete; if any stack fails due to missing state, remove remaining resources manually before a clean apply.
+- For a clean apply from empty state, run `./terraform_startup.sh` from repo root (GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo).
+
+
+S3 Force Destroy Toggle
+- `force_destroy` in [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars) controls whether S3 buckets can be deleted when they contain objects.
+- Current setting: `true` (dev-friendly). Set to `false` for production.
+
+Destroy Order (matches [terraform_destroy.sh](terraform_destroy.sh))
+1. global
+2. newyork_gcp
+3. saopaulo
+4. Tokyo
+
+Tunnel Rotation References
+- AWS Site-to-Site VPN tunnel changes: https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-connection.html
+- AWS VPN tunnel options: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html
+- GCP HA VPN concepts: https://cloud.google.com/network-connectivity/docs/vpn/concepts/ha-vpn
+- GCP HA VPN with Cloud Router: https://cloud.google.com/network-connectivity/docs/router/how-to/creating-ha-vpn
+- GCP VPN monitoring: https://cloud.google.com/network-connectivity/docs/vpn/how-to/monitor-vpn
 
 🏗️ Terraform & DevOps Structure
 Important: Multi-Terraform-State Reality
@@ -140,6 +199,19 @@ Terraform Remote State (what we actually use here)
 - Tokyo reads Sao Paulo state for TGW peering IDs and routes.
 - Sao Paulo reads Tokyo state for TGW/VPC IDs and DB endpoints/secrets.
 - Global reads Tokyo state for ALB/Route53/WAF origin protection.
+
+Remote State Key Checklist (update these together for new deployments)
+| Stack / Reference | File and line range | Setting |
+| --- | --- | --- |
+| Tokyo backend key | [Tokyo/backend.tf](Tokyo/backend.tf#L6-L12) | `key` |
+| Global backend key | [global/backend.tf](global/backend.tf#L3-L9) | `key` |
+| Sao Paulo backend key | [saopaulo/backend.tf](saopaulo/backend.tf#L6-L12) | `key` |
+| New York GCP backend key | [newyork_gcp/2-backend.tf](newyork_gcp/2-backend.tf#L2-L8) | `key` |
+| Global -> Tokyo remote state | [global/terraform.tfvars](global/terraform.tfvars#L6-L8) | `tokyo_state_key` |
+| Sao Paulo -> Tokyo remote state | [saopaulo/terraform.tfvars](saopaulo/terraform.tfvars#L3-L5) | `tokyo_state_key` |
+| New York GCP -> Tokyo remote state | [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars#L22-L24) | `tokyo_state_key` |
+| Tokyo -> GCP remote state | [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars#L63-L66) | `gcp_state_key` |
+| Tokyo -> Sao Paulo remote state | [Tokyo/main.tf](Tokyo/main.tf#L46-L55) | `key` |
 
 Optional Alerting
 - Tokyo RDS flow log alerting is gated by `enable_rds_flowlog_alarm` in [Tokyo/variables_aws_gcp_tgw.tf](Tokyo/variables_aws_gcp_tgw.tf); default is off.
@@ -273,8 +345,10 @@ DB subnet group from private subnets; dedicated RDS SG allowing DB port only fro
 
 ## vpc-endpoints.tf:
 - Interface VPC endpoints for SSM, EC2 messages, SSM messages, and CloudWatch Logs.
-- Endpoints are placed in private subnets and use the SSM/CW endpoint security groups.
-- Resources: `aws_vpc_endpoint.ssm`, `aws_vpc_endpoint.ec2messages`, `aws_vpc_endpoint.ssmmessages`, `aws_vpc_endpoint.taaops_vpce_logs01`.
+- S3 uses a gateway endpoint (private route table).
+- Endpoints are placed in private subnets and use the endpoint security groups.
+- Tokyo resources: `aws_vpc_endpoint.ssm`, `aws_vpc_endpoint.ec2messages`, `aws_vpc_endpoint.ssmmessages`, `aws_vpc_endpoint.tokyo_logs`, `aws_vpc_endpoint.s3_gateway`.
+- Sao Paulo resources: `aws_vpc_endpoint.sao_ssm`, `aws_vpc_endpoint.sao_ec2messages`, `aws_vpc_endpoint.sao_ssmmessages`, `aws_vpc_endpoint.sao_logs`, `aws_vpc_endpoint.sao_s3_gateway`.
 
 ## kms.tf:
 - CMK for RDS storage/logs, S3 data bucket, and Secrets Manager (via `kms:ViaService`).

@@ -55,10 +55,11 @@ data "aws_caller_identity" "taaops_self01" {}
 
 # São Paulo remote state for cross-region integration
 data "terraform_remote_state" "saopaulo" {
+  count   = var.enable_saopaulo_remote_state ? 1 : 0
   backend = "s3"
   config = {
     bucket  = "taaops-terraform-state-saopaulo"
-    key     = "saopaulo/terraform.tfstate"
+    key     = "saopaulo/sp022126terraform.tfstate"
     region  = "sa-east-1"
   }
 }
@@ -100,13 +101,15 @@ locals {
 locals {
   name_prefix       = var.taaops
   taaops_kms_key_id = aws_kms_key.taaops_kms_key01.arn
-  saopaulo_peering_enabled = can(data.terraform_remote_state.saopaulo.outputs.saopaulo_transit_gateway_id)
+  saopaulo_tgw_id = var.enable_saopaulo_remote_state ? try(data.terraform_remote_state.saopaulo[0].outputs.saopaulo_transit_gateway_id, "") : ""
+  saopaulo_peering_enabled = local.saopaulo_tgw_id != ""
   gcp_state_enabled = var.enable_aws_gcp_tgw_vpn && var.gcp_state_bucket != "" && var.gcp_state_key != "" && var.gcp_state_region != ""
   gcp_ha_vpn_interface_0_ip_effective = local.gcp_state_enabled ? try(data.terraform_remote_state.gcp[0].outputs.gcp_ha_vpn_interface_0_ip, var.gcp_ha_vpn_interface_0_ip) : var.gcp_ha_vpn_interface_0_ip
   gcp_ha_vpn_interface_1_ip_effective = local.gcp_state_enabled ? try(data.terraform_remote_state.gcp[0].outputs.gcp_ha_vpn_interface_1_ip, var.gcp_ha_vpn_interface_1_ip) : var.gcp_ha_vpn_interface_1_ip
   gcp_ilb_internal_ip_effective = local.gcp_state_enabled ? try(data.terraform_remote_state.gcp[0].outputs.nihonmachi_ilb_ip, var.gcp_ilb_internal_ip) : var.gcp_ilb_internal_ip
-  # Guard VPN resources until TGW + GCP public IPs are available (remote state or direct vars).
-  gcp_vpn_ready = var.enable_aws_gcp_tgw_vpn && local.effective_tgw_id != "" && local.gcp_ha_vpn_interface_0_ip_effective != "" && local.gcp_ha_vpn_interface_1_ip_effective != ""
+  # Guard VPN resources until GCP public IPs are available (remote state or direct vars).
+  # Avoid referencing resource-derived values in count/for_each conditions.
+  gcp_vpn_ready = var.enable_aws_gcp_tgw_vpn && local.gcp_ha_vpn_interface_0_ip_effective != "" && local.gcp_ha_vpn_interface_1_ip_effective != ""
 }
 
 
@@ -353,10 +356,10 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "tokyo_vpc_attachment" {
 
 # Inter-Region Peering to São Paulo
 resource "aws_ec2_transit_gateway_peering_attachment" "tokyo_to_sao_peering" {
-  count = can(data.terraform_remote_state.saopaulo.outputs.saopaulo_transit_gateway_id) ? 1 : 0
+  count = local.saopaulo_peering_enabled ? 1 : 0
 
   transit_gateway_id      = aws_ec2_transit_gateway.shinjuku_tgw01.id
-  peer_transit_gateway_id = data.terraform_remote_state.saopaulo.outputs.saopaulo_transit_gateway_id
+  peer_transit_gateway_id = local.saopaulo_tgw_id
   peer_region             = "sa-east-1"
 
   tags = {
@@ -395,7 +398,7 @@ resource "aws_customer_gateway" "gcp_cgw_1" {
   tags = { Name = "gcp-ha-vpn-if0" }
 
   lifecycle {
-    prevent_destroy = !var.allow_vpn_destroy
+    prevent_destroy = false
   }
 }
 
@@ -407,7 +410,7 @@ resource "aws_customer_gateway" "gcp_cgw_2" {
   tags = { Name = "gcp-ha-vpn-if1" }
 
   lifecycle {
-    prevent_destroy = !var.allow_vpn_destroy
+    prevent_destroy = false
   }
 }
 
@@ -433,7 +436,7 @@ resource "aws_vpn_connection" "tgw_vpn_1" {
   tags = { Name = "tgw-to-gcp-vpn-1" }
 
   lifecycle {
-    prevent_destroy = !var.allow_vpn_destroy
+    prevent_destroy = false
   }
 }
 
@@ -455,7 +458,7 @@ resource "aws_vpn_connection" "tgw_vpn_2" {
   tags = { Name = "tgw-to-gcp-vpn-2" }
 
   lifecycle {
-    prevent_destroy = !var.allow_vpn_destroy
+    prevent_destroy = false
   }
 }
 
@@ -590,6 +593,7 @@ module "tokyo_translation" {
   source = "../modules/translation"
 
   region = var.aws_region
+  force_destroy = var.force_destroy
   common_tags = {
     ManagedBy = "Terraform"
     Region    = "Tokyo"
@@ -723,6 +727,17 @@ resource "aws_autoscaling_group" "tokyo_app_asg" {
   launch_template {
     id      = aws_launch_template.tokyo_app_template.id
     version = "$Latest"
+  }
+
+  # Roll instances when the launch template/user data changes (hotfixes, patches).
+  instance_refresh {
+    strategy = "Rolling"
+    triggers = ["launch_template"]
+
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 120
+    }
   }
 
   tag {

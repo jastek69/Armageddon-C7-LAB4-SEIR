@@ -77,24 +77,56 @@ import boto3
 import pymysql
 from flask import Flask, request
 
-REGION = os.environ.get("AWS_REGION", "us-west-2")
+REGION = os.environ.get("AWS_REGION", "ap-northeast-1")
 SECRET_ID = os.environ.get("SECRET_ID", "taaops/rds/mysql")
 PARAM_DB_NAME = os.environ.get("PARAM_DB_NAME", "/lab/db/name")
+PARAM_DB_SECRET_ARN = os.environ.get("PARAM_DB_SECRET_ARN", "/taaops/db/secret_arn")
+PARAM_DB_ENDPOINT = os.environ.get("PARAM_DB_ENDPOINT", "/taaops/db/endpoint")
+FALLBACK_DB_ENDPOINT = os.environ.get("FALLBACK_DB_ENDPOINT", "/lab/db/endpoint")
+FALLBACK_DB_NAME = os.environ.get("FALLBACK_DB_NAME", "taaopsdb")
 
 secrets = boto3.client("secretsmanager", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)
 
 def get_db_name():
-    resp = ssm.get_parameter(Name=PARAM_DB_NAME, WithDecryption=True)
-    return resp["Parameter"]["Value"]
+  for name in [PARAM_DB_NAME, "/lab/db/name"]:
+    try:
+      resp = ssm.get_parameter(Name=name, WithDecryption=True)
+      value = resp["Parameter"]["Value"].strip()
+      if value:
+        return value
+    except Exception:
+      pass
+  return FALLBACK_DB_NAME
+
+def get_db_endpoint():
+  for name in [PARAM_DB_ENDPOINT, FALLBACK_DB_ENDPOINT]:
+    try:
+      resp = ssm.get_parameter(Name=name, WithDecryption=True)
+      value = resp["Parameter"]["Value"].strip()
+      if value:
+        return value
+    except Exception:
+      pass
+  return None
+
+def get_secret_id():
+  try:
+    resp = ssm.get_parameter(Name=PARAM_DB_SECRET_ARN, WithDecryption=True)
+    secret_arn = resp["Parameter"]["Value"].strip()
+    if secret_arn:
+      return secret_arn
+  except Exception:
+    pass
+  return SECRET_ID
 
 def get_db_creds():
-    resp = secrets.get_secret_value(SecretId=SECRET_ID)
-    return json.loads(resp["SecretString"])
+  resp = secrets.get_secret_value(SecretId=get_secret_id())
+  return json.loads(resp["SecretString"])
 
 def get_conn():
     c = get_db_creds()
-    host = c["host"]
+    host = c.get("host") or get_db_endpoint()
     user = c["username"]
     password = c["password"]
     port = int(c.get("port", 3306))
@@ -117,7 +149,7 @@ def home():
 @app.route("/init")
 def init_db():
     c = get_db_creds()
-    host = c["host"]
+    host = c.get("host") or get_db_endpoint()
     user = c["username"]
     password = c["password"]
     port = int(c.get("port", 3306))
@@ -185,6 +217,7 @@ After=network.target
 WorkingDirectory=/opt/rdsapp
 Environment=AWS_REGION=ap-northeast-1
 Environment=SECRET_ID=taaops/rds/mysql
+Environment=PARAM_DB_SECRET_ARN=/taaops/db/secret_arn
 Environment=PARAM_DB_NAME=/taaops/db/name
 ExecStart=/usr/bin/python3 /opt/rdsapp/app.py
 Restart=always

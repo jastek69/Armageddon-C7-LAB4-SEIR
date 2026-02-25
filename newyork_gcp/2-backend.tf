@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
     bucket         = "taaops-terraform-state-tokyo"
-    key            = "newyork_gcp/ny02152026terraform.tfstate"
+    key            = "newyork_gcp/ny022126terraform.tfstate"
     region         = "ap-northeast-1"
     encrypt        = true
     use_lockfile   = true

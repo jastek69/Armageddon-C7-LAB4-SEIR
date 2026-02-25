@@ -4,7 +4,7 @@
 terraform {
   backend "s3" {
     bucket       = "taaops-terraform-state-saopaulo"
-    key          = "saopaulo/02152026terraform.tfstate"
+    key          = "saopaulo/sp022126terraform.tfstate"
     region       = "sa-east-1"
     encrypt      = true
     use_lockfile = true

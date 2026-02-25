@@ -60,6 +60,7 @@ resource "aws_s3_bucket" "taaops_regional_waf_firehose_dest" {
   count = var.waf_log_destination == "firehose" ? 1 : 0
 
   bucket = "${var.project_name}-tokyo-waf-firehose-${data.aws_caller_identity.taaops_self01.account_id}"
+  force_destroy = var.force_destroy
 
   tags = {
     Name        = "${var.project_name}-regional-waf-firehose-dest"

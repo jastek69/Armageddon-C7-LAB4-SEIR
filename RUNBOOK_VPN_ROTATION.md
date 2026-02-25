@@ -355,12 +355,12 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "gcp_vpn2_rot_to_vpn_
 - Keep old tunnels active for a short soak period.
 
 ## Step 5: Remove Old Tunnels
-1) Set `allow_vpn_destroy = true` in:
-   - [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars) (if present)
-   - [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars)
+1) Set `prevent_destroy = false` in the VPN lifecycle blocks for:
+  - [Tokyo/tgw-vpn-connections.tf](Tokyo/tgw-vpn-connections.tf) (if present)
+  - [newyork_gcp/5-gcp-vpn-connections.tf](newyork_gcp/5-gcp-vpn-connections.tf)
 2) Remove old VPN resources from Terraform config (the original, non-rotated set).
 3) Apply in Tokyo, then apply in newyork_gcp.
-4) Set `allow_vpn_destroy = false` again to re-pin resources.
+4) Set `prevent_destroy = true` again to re-pin resources.
 
 ## Step 6: Post-Change Checks
 - Confirm BGP peers Established on the new tunnels.
@@ -371,11 +371,53 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "gcp_vpn2_rot_to_vpn_
 ## Rollback Plan
 - If new tunnels fail, keep old tunnels active.
 - Remove new resources and revert to the previous state.
-- Re-apply with `allow_vpn_destroy = false` to prevent accidental deletion.
+- Re-apply with `prevent_destroy = true` to prevent accidental deletion.
 
 ## Notes
-- The `allow_vpn_destroy` guard is defined in:
-  - [Tokyo/variables_aws_gcp_tgw.tf](Tokyo/variables_aws_gcp_tgw.tf)
-  - [newyork_gcp/3-variables.tf](newyork_gcp/3-variables.tf)
+- The `prevent_destroy` lifecycle guard is set directly on the VPN resources in:
+  - [Tokyo/tgw-vpn-connections.tf](Tokyo/tgw-vpn-connections.tf) (if present)
+  - [newyork_gcp/5-gcp-vpn-connections.tf](newyork_gcp/5-gcp-vpn-connections.tf)
+- Operational toggle: set `prevent_destroy = true` during normal builds/changes, and temporarily set it to `false` only for teardown or planned VPN rotation, then restore to `true`.
 - The Tokyo RDS flow log alert is optional; toggle with `enable_rds_flowlog_alarm` in [Tokyo/variables_aws_gcp_tgw.tf](Tokyo/variables_aws_gcp_tgw.tf).
 - Use a stable Tokyo remote state key so dependent stacks always read current outputs.
+
+## Build/Apply
+- Note: set `prevent_destroy = true` for VPN resources.
+
+## Tear Down
+- Note: set `prevent_destroy = false` before destroy, then set it back to `true` after teardown.
+
+Build/ Apply:
+Note: set `prevent_destroy = true`
+
+## Secrets manager note:
+Option 1: restore secret, then apply:
+aws secretsmanager restore-secret \
+  --secret-id <secret-name-or-arn> \
+  --region ap-northeast-1
+
+example:
+aws secretsmanager restore-secret \
+  --secret-id taaops/rds/mysql \
+  --region ap-northeast-1
+
+Next: Import the existing secret into state.
+```
+cd Tokyo
+terraform import aws_secretsmanager_secret.db_secret taaops/rds/mysql
+```
+
+Finally re-run from root
+
+
+Option 2: force delete, then recreate
+Tear Down:
+Note: set `prevent_destroy = false`, teardown will require a manual toggle (set to false) before destroy, then set back to true after.
+
+
+## Reference Docs
+- AWS Site-to-Site VPN tunnel changes: https://docs.aws.amazon.com/vpn/latest/s2svpn/modify-vpn-connection.html
+- AWS VPN tunnel options: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html
+- GCP HA VPN concepts: https://cloud.google.com/network-connectivity/docs/vpn/concepts/ha-vpn
+- GCP HA VPN with Cloud Router: https://cloud.google.com/network-connectivity/docs/router/how-to/creating-ha-vpn
+- GCP VPN monitoring: https://cloud.google.com/network-connectivity/docs/vpn/how-to/monitor-vpn

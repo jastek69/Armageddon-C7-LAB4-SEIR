@@ -128,8 +128,3 @@ variable "enable_rds_flowlog_alarm" {
   default     = false
 }
 
-variable "allow_vpn_destroy" {
-  description = "Allow VPN gateway/tunnel resources to be destroyed (use only during controlled rotation)."
-  type        = bool
-  default     = false
-}

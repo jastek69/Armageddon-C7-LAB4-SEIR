@@ -102,3 +102,18 @@ resource "aws_vpc_endpoint" "tokyo_logs" {
     Name = "tokyo-logs-endpoint"
   }
 }
+
+# S3 Gateway endpoint (private route table)
+resource "aws_vpc_endpoint" "s3_gateway" {
+  vpc_id            = aws_vpc.shinjuku_vpc01.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = [
+    aws_route_table.tokyo_private_rt.id
+  ]
+
+  tags = {
+    Name = "tokyo-s3-gateway-endpoint"
+  }
+}

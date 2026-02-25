@@ -205,6 +205,11 @@ Use Terraform to destroy the setup:
 terraform destroy -auto-approve
 ```
 
+Notes:
+- If Tokyo state is not available, set `enable_aws_gcp_tgw_vpn = false` in [newyork_gcp/terraform.tfvars](terraform.tfvars) before destroy. This skips Tokyo remote state reads and disables the VPN resources that need those outputs.
+- If the VPC delete is blocked by the GCP router, set `enable_gcp_router_destroy = true` in [newyork_gcp/terraform.tfvars](terraform.tfvars), import the router, then destroy again.
+- To allow VPN resources to be deleted, set `prevent_destroy = false` in the VPN lifecycle blocks in [newyork_gcp/5-gcp-vpn-connections.tf](5-gcp-vpn-connections.tf), then restore it to `true`.
+
 ---
 
 ## 🛠️ Troubleshooting

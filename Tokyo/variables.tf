@@ -140,6 +140,30 @@ variable "rds_cluster_identifier" {
   default     = "taaops-aurora-cluster-02"
 }
 
+variable "rds_kms_key_arn" {
+  description = "Override KMS key ARN for RDS encryption and master user secret."
+  type        = string
+  default     = ""
+}
+
+variable "rds_security_group_id" {
+  description = "Override security group ID for the RDS cluster."
+  type        = string
+  default     = ""
+}
+
+variable "force_destroy" {
+  description = "Allow S3 buckets to be destroyed even when they contain objects."
+  type        = bool
+  default     = false
+}
+
+variable "enable_saopaulo_remote_state" {
+  description = "Enable Sao Paulo remote state lookups for TGW peering."
+  type        = bool
+  default     = true
+}
+
 # SECRETS ROTATION
 variable "secrets_rotation_days" {
   description = "Number of days between Secrets Manager rotations"

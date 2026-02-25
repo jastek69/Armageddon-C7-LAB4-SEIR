@@ -47,15 +47,15 @@ resource "aws_iam_role_policy" "vpc_flowlogs_policy" {
 }
 
 locals {
-  tokyo_rds_flowlog_subnets = [
-    aws_subnet.tokyo_subnet_private_a.id,
-    aws_subnet.tokyo_subnet_private_b.id,
-    aws_subnet.tokyo_subnet_private_c.id
-  ]
+  tokyo_rds_flowlog_subnets = {
+    a = aws_subnet.tokyo_subnet_private_a.id
+    b = aws_subnet.tokyo_subnet_private_b.id
+    c = aws_subnet.tokyo_subnet_private_c.id
+  }
 }
 
 resource "aws_flow_log" "tokyo_rds_subnet_flowlogs" {
-  for_each = toset(local.tokyo_rds_flowlog_subnets)
+  for_each = local.tokyo_rds_flowlog_subnets
 
   log_destination      = aws_cloudwatch_log_group.tokyo_rds_flowlogs.arn
   log_destination_type = "cloud-watch-logs"

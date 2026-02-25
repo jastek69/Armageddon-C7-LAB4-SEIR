@@ -23,6 +23,12 @@ variable "output_bucket_name" {
   default     = ""
 }
 
+variable "force_destroy" {
+  description = "Allow translation buckets to be destroyed even when they contain objects."
+  type        = bool
+  default     = false
+}
+
 variable "reports_bucket_name" {
   description = "Name of the main reports bucket (where final reports are stored)"
   type        = string

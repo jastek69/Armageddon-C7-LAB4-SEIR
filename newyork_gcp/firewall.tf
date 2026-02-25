@@ -40,3 +40,34 @@ resource "google_compute_firewall" "nihonmachi_allow_ilb_proxy01" {
   source_ranges = ["10.235.254.0/24"]
   target_tags   = ["nihonmachi-app"]
 }
+
+# Allow IAP SSH access for managed instances.
+resource "google_compute_firewall" "allow_iap_ssh_vpc01" {
+  name    = "allow-iap-ssh-vpc01"
+  network = google_compute_network.nihonmachi_vpc01.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  # IAP TCP forwarding range.
+  source_ranges = ["35.235.240.0/20"]
+}
+
+# Allow general VPN traffic (Ike/Ipsec) for AWS tunnels.
+resource "google_compute_firewall" "allow_vpn_traffic" {
+  name    = "allow-vpn-traffic"
+  network = google_compute_network.nihonmachi_vpc01.name
+
+  allow {
+    protocol = "udp"
+    ports    = ["500", "4500"]
+  }
+
+  allow {
+    protocol = "esp"
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}

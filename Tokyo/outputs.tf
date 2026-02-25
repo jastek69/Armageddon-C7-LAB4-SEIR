@@ -123,6 +123,28 @@ output "tokyo_alb_tg_arn" {
   description = "Tokyo ALB target group ARN."
 }
 
+# VPC ENDPOINT OUTPUTS
+output "tokyo_vpc_endpoint_ids" {
+  value = {
+    ssm         = aws_vpc_endpoint.ssm.id
+    ec2messages = aws_vpc_endpoint.ec2messages.id
+    ssmmessages = aws_vpc_endpoint.ssmmessages.id
+    logs        = aws_vpc_endpoint.tokyo_logs.id
+    s3_gateway  = aws_vpc_endpoint.s3_gateway.id
+  }
+  description = "Tokyo VPC endpoint IDs."
+}
+
+output "tokyo_vpc_endpoint_dns" {
+  value = {
+    ssm         = [for entry in aws_vpc_endpoint.ssm.dns_entry : entry.dns_name]
+    ec2messages = [for entry in aws_vpc_endpoint.ec2messages.dns_entry : entry.dns_name]
+    ssmmessages = [for entry in aws_vpc_endpoint.ssmmessages.dns_entry : entry.dns_name]
+    logs        = [for entry in aws_vpc_endpoint.tokyo_logs.dns_entry : entry.dns_name]
+  }
+  description = "Tokyo VPC endpoint DNS names (interface endpoints)."
+}
+
 # INCIDENT REPORTING OUTPUTS
 output "incident_reports_bucket_name" {
   value       = aws_s3_bucket.tokyo_ir_reports_bucket.bucket

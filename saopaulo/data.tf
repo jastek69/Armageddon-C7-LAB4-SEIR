@@ -21,6 +21,7 @@ locals {
   tokyo_tgw_id   = data.terraform_remote_state.tokyo.outputs.tokyo_transit_gateway_id
   tokyo_vpc_cidr = data.terraform_remote_state.tokyo.outputs.tokyo_vpc_cidr
   tokyo_vpc_id   = data.terraform_remote_state.tokyo.outputs.tokyo_vpc_id
+  tokyo_sao_peering_id = try(data.terraform_remote_state.tokyo.outputs.tokyo_sao_peering_id, "")
   
   # Database information from Tokyo
   rds_endpoint          = data.terraform_remote_state.tokyo.outputs.database_endpoint

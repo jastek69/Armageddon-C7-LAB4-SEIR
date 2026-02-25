@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/env bash
 # LAB3 multi-stack Terraform destroy
-# Order: Global -> Tokyo -> Sao Paulo
+# Order: Global -> New York GCP -> Sao Paulo -> Tokyo
 # Maintainer note: active stacks are in `Tokyo/`, `global/`, `saopaulo/`; legacy root Terraform files are in `archive/root-terraform-from-root/`.
 
 set -euo pipefail
@@ -18,7 +18,7 @@ run_destroy() {
   cd - >/dev/null
 }
 
-echo "WARNING: This will destroy LAB3 infrastructure in Global, Sao Paulo, and Tokyo stacks."
+echo "WARNING: This will destroy LAB4 infrastructure in Global, New York GCP, Sao Paulo, and Tokyo stacks."
 read -r -p "Type 'yes' to continue: " confirm
 if [[ "$confirm" != "yes" ]]; then
   echo "Destroy cancelled."
@@ -31,11 +31,14 @@ sleep 5
 # Stage 1: Global (must go first due origin/CloudFront dependencies)
 run_destroy "global" "global-destroy.tfplan"
 
-# Stage 2: Tokyo (must go before Sao Paulo to keep remote state outputs available)
-run_destroy "Tokyo" "tokyo-destroy.tfplan"
+# Stage 2: New York GCP (depends on Tokyo remote state)
+run_destroy "newyork_gcp" "newyork-gcp-destroy.tfplan"
 
-# Stage 3: Sao Paulo
+# Stage 3: Sao Paulo (depends on Tokyo remote state)
 run_destroy "saopaulo" "saopaulo-destroy.tfplan"
+
+# Stage 4: Tokyo (source of truth for other stacks)
+run_destroy "Tokyo" "tokyo-destroy.tfplan"
 
 # Stage 4: Local cleanup
 echo ""

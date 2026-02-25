@@ -93,7 +93,10 @@ data "aws_iam_policy_document" "database_access" {
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret"
     ]
-    resources = [var.database_secret_arn]
+    resources = [
+      var.database_secret_arn,
+      "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:rds!cluster-*"
+    ]
   }
 
   statement {
@@ -104,8 +107,26 @@ data "aws_iam_policy_document" "database_access" {
       "ssm:GetParameters"
     ]
     resources = [
-      "arn:aws:ssm:*:${data.aws_caller_identity.current.account_id}:parameter/taaops/database/*"
+      "arn:aws:ssm:*:${data.aws_caller_identity.current.account_id}:parameter/taaops/database/*",
+      "arn:aws:ssm:*:${data.aws_caller_identity.current.account_id}:parameter/taaops/db/*"
     ]
+  }
+
+  statement {
+    sid    = "DecryptSecretsManagerKey"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey"
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values = [
+        "secretsmanager.${data.aws_region.current.name}.amazonaws.com"
+      ]
+    }
   }
 }
 

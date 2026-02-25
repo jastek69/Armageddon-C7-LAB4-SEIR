@@ -35,7 +35,7 @@ resource "google_compute_region_url_map" "nihonmachi_urlmap01" {
 resource "google_compute_region_ssl_certificate" "nihonmachi_ilb_cert01" {
   name        = "nihonmachi-ilb-cert01"
   region      = var.gcp_region
-  certificate = google_privateca_certificate.nihonmachi_ilb_cert.pem_certificate
+  certificate = tls_self_signed_cert.nihonmachi_ilb.cert_pem
   private_key = tls_private_key.nihonmachi_ilb.private_key_pem
 }
 

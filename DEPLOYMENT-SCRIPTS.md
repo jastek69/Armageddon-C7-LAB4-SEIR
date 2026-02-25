@@ -15,6 +15,11 @@ bash ./terraform_startup.sh
 bash ./terraform_apply.sh
 ```
 
+Windows Line Endings Fix (if scripts fail with /usr/bin/env)
+```bash
+sed -i 's/\r$//' terraform_startup.sh terraform_apply.sh
+```
+
 ### Destroy Everything  
 ```bash
 bash ./terraform_destroy.sh

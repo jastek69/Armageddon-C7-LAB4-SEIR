@@ -42,6 +42,16 @@ This Terraform configuration implements a secure multi-region AWS architecture w
 - **Security Groups**: Region-specific with cross-region rules
 - **VPC Endpoints**: For AWS services in both regions
 
+### 🔐 ACM Certificates
+- **CloudFront**: ACM certificate in us-east-1 for the public CNAMEs.
+- **Tokyo ALB Origin**: Separate ACM certificate in ap-northeast-1 for the origin hostname.
+- **GCP Internal ILB**: CAS-issued certificate for the internal HTTPS endpoint.
+  - CAS pool: `nihonmachi-cas-pool` (us-central1)
+  - CA: `nihonmachi-root-ca`
+  - Common name/SAN: `nihonmachi.internal.jastek.click`
+  - ILB IP: output `nihonmachi_ilb_ip` in [newyork_gcp/outputs.tf](newyork_gcp/outputs.tf#L9-L12)
+  - Private DNS: A record in [Tokyo/route53-private-ilb.tf](Tokyo/route53-private-ilb.tf#L9-L22)
+
 ## Key Files Updated
 
 ### Core Infrastructure
@@ -76,6 +86,15 @@ São Paulo Compute → São Paulo TGW → Tokyo TGW → Tokyo Database
    - Database remains in Tokyo (data sovereignty)
    - All cross-region traffic uses encrypted Transit Gateway
    - No direct internet access to database
+
+## Pre-Deploy Sanity Checklist
+
+- Remote state keys align with backends for Tokyo, global, Sao Paulo, and New York GCP stacks.
+- Global stack tfvars include `tokyo_state_key`, domain, and subdomain values (CloudFront/Route53 depend on them).
+- AWS <-> GCP VPN flags are set for a full deploy: `enable_aws_gcp_tgw_vpn = true` and `enable_gcp_router_destroy = false`.
+- Tokyo is configured to pull GCP HA VPN public IPs from remote state via `gcp_state_bucket`, `gcp_state_key`, and `gcp_state_region`.
+- New York GCP stack points at Tokyo remote state via `tokyo_state_bucket`, `tokyo_state_key`, and `tokyo_state_region`.
+- S3 `force_destroy` matches intent (`true` for dev teardown, `false` for production safety).
 
 ## Variables Required
 

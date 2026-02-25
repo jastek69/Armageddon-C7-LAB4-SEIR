@@ -1,0 +1,1899 @@
+data.terraform_remote_state.gcp[0]: Reading...
+data.terraform_remote_state.saopaulo: Reading...
+data.terraform_remote_state.tokyo: Reading...
+data.archive_file.tokyo_ir_lambda_zip: Reading...
+module.tokyo_translation.data.archive_file.translation_lambda_zip: Reading...
+data.archive_file.tokyo_ir_lambda_zip: Read complete after 0s [id=fd9105589698b069bec3dc5aefc8d6634f5b9611]
+module.tokyo_translation.data.archive_file.translation_lambda_zip: Read complete after 0s [id=2a8d162afbd74431c240ac2be8a1bd21f128b1ab]
+module.tokyo_monitoring.data.aws_caller_identity.current: Reading...
+module.tokyo_regional_iam.data.aws_caller_identity.current: Reading...
+module.tokyo_translation.aws_s3_bucket.input_bucket: Refreshing state... [id=taaops-translate-input]
+module.tokyo_monitoring.aws_ssm_association.cw_agent_install: Refreshing state... [id=94d1f929-8d4d-4116-b5a2-259a86b99a97]
+aws_vpc.shinjuku_vpc01: Refreshing state... [id=vpc-00ae3886fbdc02172]
+module.tokyo_s3_logging.aws_s3_bucket.application_logs: Refreshing state... [id=taaops-tokyo-app-logs]
+aws_iam_role.lambda_edge_role: Refreshing state... [id=lambda-edge-execution-role]
+module.tokyo_monitoring.data.aws_caller_identity.current: Read complete after 0s [id=015195098145]
+module.tokyo_regional_iam.data.aws_caller_identity.current: Read complete after 0s [id=015195098145]
+aws_cloudwatch_log_group.tokyo_rds_flowlogs: Refreshing state... [id=/vpc/flowlogs/tokyo-rds]
+aws_eip.tokyo_nat_eip: Refreshing state... [id=eipalloc-0a75994b0951a2aaa]
+aws_iam_role.bedrock_service_role: Refreshing state... [id=bedrock-service-role]
+data.terraform_remote_state.gcp[0]: Read complete after 2s
+module.tokyo_monitoring.aws_cloudwatch_log_group.application: Refreshing state... [id=/aws/taaops-tokyo/application]
+module.tokyo_s3_logging.data.aws_region.current: Reading...
+module.tokyo_s3_logging.data.aws_region.current: Read complete after 0s [id=ap-northeast-1]
+aws_kms_key.taaops_kms_key01: Refreshing state... [id=7cce62c4-1541-43f5-8ec5-2769398cc927]
+data.terraform_remote_state.tokyo: Read complete after 2s
+aws_dynamodb_table.terraform_lock: Refreshing state... [id=taaops-terraform-state-lock]
+module.tokyo_regional_iam.data.aws_region.current: Reading...
+module.tokyo_regional_iam.data.aws_region.current: Read complete after 0s [id=ap-northeast-1]
+aws_iam_role.tokyo_ir_lambda_role: Refreshing state... [id=taaops-tokyo-ir-lambda-role]
+aws_cloudwatch_log_group.taaops_cw_log_group01: Refreshing state... [id=/taaops/application]
+module.tokyo_translation.aws_s3_bucket.output_bucket: Refreshing state... [id=taaops-translate-output]
+data.terraform_remote_state.saopaulo: Read complete after 2s
+aws_iam_role.route53_health_check_role: Refreshing state... [id=route53-health-check-role]
+aws_wafv2_ip_set.taaops_regional_ip_block_list: Refreshing state... [id=2455cd22-1e8a-4108-ad43-f44ada5bb516]
+module.tokyo_s3_logging.data.aws_elb_service_account.main: Reading...
+module.tokyo_s3_logging.data.aws_elb_service_account.main: Read complete after 0s [id=582318560864]
+aws_iam_role.vpc_flowlogs_role: Refreshing state... [id=tokyo-vpc-flowlogs-role]
+module.tokyo_monitoring.data.aws_region.current: Reading...
+module.tokyo_monitoring.data.aws_region.current: Read complete after 0s [id=ap-northeast-1]
+aws_ssm_document.tokyo_alarm_report_runbook: Refreshing state... [id=taaops-tokyo-incident-report]
+module.tokyo_translation.aws_iam_role.translation_lambda_role: Refreshing state... [id=taaops-translate-ap-northeast-1-lambda-role]
+module.tokyo_monitoring.aws_cloudwatch_log_group.alb: Refreshing state... [id=/aws/taaops-tokyo/alb]
+data.aws_region.current: Reading...
+data.aws_region.current: Read complete after 0s [id=ap-northeast-1]
+aws_iam_role.rds_enhanced_monitoring: Refreshing state... [id=rds-enhanced-monitoring]
+aws_iam_role.tokyo_ssm_automation_role: Refreshing state... [id=taaops-tokyo-ssm-automation-role]
+module.tokyo_monitoring.aws_sns_topic.regional_alerts: Refreshing state... [id=arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-alerts]
+aws_sns_topic.tokyo_ir_reports_topic: Refreshing state... [id=arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-reports-topic]
+module.tokyo_monitoring.aws_cloudwatch_log_group.system: Refreshing state... [id=/aws/taaops-tokyo/system]
+aws_iam_role.cloudfront_service_role: Refreshing state... [id=cloudfront-service-role]
+aws_sns_topic.tokyo_ir_trigger_topic: Refreshing state... [id=arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-trigger-topic]
+module.tokyo_s3_logging.aws_s3_bucket.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs]
+data.aws_iam_policy_document.route53_cloudwatch: Reading...
+data.aws_iam_policy_document.route53_cloudwatch: Read complete after 0s [id=1178418716]
+data.aws_route53_zone.main-taaops: Reading...
+module.tokyo_monitoring.aws_ssm_parameter.cw_agent_config: Refreshing state... [id=/cw/agent/config]
+data.aws_caller_identity.taaops_self01: Reading...
+data.aws_caller_identity.taaops_self01: Read complete after 1s [id=015195098145]
+data.aws_caller_identity.tokyo_self01: Reading...
+data.aws_caller_identity.tokyo_self01: Read complete after 0s [id=015195098145]
+module.tokyo_monitoring.aws_sns_topic.cloudwatch_alarms: Refreshing state... [id=arn:aws:sns:ap-northeast-1:015195098145:taaops-cloudwatch-alarms]
+module.tokyo_s3_logging.data.aws_caller_identity.current: Reading...
+aws_cloudwatch_log_group.taaops_regional_waf_log_group[0]: Refreshing state... [id=aws-waf-logs-taaops-tokyo-regional-waf]
+aws_acm_certificate.tokyo_alb_origin[0]: Refreshing state... [id=arn:aws:acm:ap-northeast-1:015195098145:certificate/bd05da96-c350-441c-b0a6-eda3667bcf36]
+aws_secretsmanager_secret.db_secret: Refreshing state... [id=taaops/rds/mysql]
+module.tokyo_s3_logging.data.aws_caller_identity.current: Read complete after 0s [id=015195098145]
+module.tokyo_regional_iam.data.aws_iam_policy_document.ec2_assume_role_policy: Reading...
+aws_ec2_transit_gateway.shinjuku_tgw01: Refreshing state... [id=tgw-03d09f306788c059a]
+module.tokyo_regional_iam.data.aws_iam_policy_document.ec2_assume_role_policy: Read complete after 0s [id=2851119427]
+aws_iam_role_policy_attachment.lambda_edge_basic_execution: Refreshing state... [id=lambda-edge-execution-role-20260220085501469100000002]
+module.tokyo_regional_iam.data.aws_iam_policy_document.regional_application: Reading...
+module.tokyo_regional_iam.data.aws_iam_policy_document.regional_application: Read complete after 0s [id=3291778384]
+module.tokyo_regional_iam.data.aws_iam_policy_document.regional_monitoring: Reading...
+module.tokyo_regional_iam.data.aws_iam_policy_document.regional_monitoring: Read complete after 0s [id=1865735623]
+aws_iam_role_policy_attachment.tokyo_ir_lambda_basiclogs: Refreshing state... [id=taaops-tokyo-ir-lambda-role-2026022008550317700000000a]
+aws_iam_role_policy.vpc_flowlogs_policy: Refreshing state... [id=tokyo-vpc-flowlogs-role:tokyo-vpc-flowlogs-policy]
+aws_security_group.taaops_alb01_sg443: Refreshing state... [id=sg-09f2ef083628a84e7]
+aws_internet_gateway.tokyo_igw01: Refreshing state... [id=igw-079c0ff1da229ce48]
+aws_subnet.tokyo_subnet_public_b: Refreshing state... [id=subnet-067c86d0e49e046b8]
+aws_subnet.tokyo_subnet_private_c: Refreshing state... [id=subnet-04f168f4dd653066d]
+aws_subnet.tokyo_subnet_public_c: Refreshing state... [id=subnet-012f84861b94b2e18]
+aws_subnet.tokyo_subnet_private_b: Refreshing state... [id=subnet-01d5cf51aee01a7d2]
+aws_subnet.tokyo_subnet_public_a: Refreshing state... [id=subnet-04eb74f6516f036ec]
+aws_subnet.tokyo_subnet_private_a: Refreshing state... [id=subnet-09e0241232f866da8]
+data.aws_route53_zone.main-taaops: Read complete after 1s [id=Z0226086O3FCYG2A1C50]
+aws_security_group.tokyo_endpoints_sg: Refreshing state... [id=sg-0df61781549a0dedb]
+aws_subnet.tokyo_tgw_subnet: Refreshing state... [id=subnet-0f73c07826b7975c7]
+aws_route53_zone.nihonmachi_private_zone[0]: Refreshing state... [id=Z00811883LXCVXAI5FDE3]
+aws_iam_role_policy_attachment.tokyo_ssm_automation_service_role: Refreshing state... [id=taaops-tokyo-ssm-automation-role-20260220085502924400000009]
+aws_iam_role_policy_attachment.rds_enhanced_monitoring: Refreshing state... [id=rds-enhanced-monitoring-20260220085501455100000001]
+aws_iam_policy.route53_cloudwatch: Refreshing state... [id=arn:aws:iam::015195098145:policy/route53-cloudwatch-policy]
+aws_s3_bucket.tokyo_backend_logs: Refreshing state... [id=tokyo-backend-logs-015195098145]
+data.aws_iam_policy_document.cross_region_automation: Reading...
+data.aws_iam_policy_document.cross_region_automation: Read complete after 0s [id=782926429]
+aws_iam_role.saopaulo_assumable_role: Refreshing state... [id=saopaulo-assumable-role]
+aws_iam_role.cross_region_automation: Refreshing state... [id=cross-region-automation-role]
+data.aws_iam_policy_document.bedrock_application_access: Reading...
+data.aws_iam_policy_document.bedrock_application_access: Read complete after 0s [id=1398128550]
+aws_s3_bucket.tokyo_ir_reports_bucket: Refreshing state... [id=taaops-tokyo-incident-reports-015195098145]
+module.tokyo_monitoring.aws_cloudwatch_metric_alarm.high_disk_usage[0]: Refreshing state... [id=taaops-tokyo-high-disk-usage]
+module.tokyo_monitoring.data.aws_iam_policy_document.sns_topic_policy: Reading...
+module.tokyo_monitoring.data.aws_iam_policy_document.sns_topic_policy: Read complete after 0s [id=2992793470]
+module.tokyo_monitoring.aws_cloudwatch_metric_alarm.high_cpu[0]: Refreshing state... [id=taaops-tokyo-high-cpu]
+module.tokyo_translation.aws_s3_bucket_versioning.input_versioning: Refreshing state... [id=taaops-translate-input]
+module.tokyo_translation.aws_s3_bucket_public_access_block.input_pab: Refreshing state... [id=taaops-translate-input]
+module.tokyo_translation.aws_s3_bucket_server_side_encryption_configuration.input_encryption: Refreshing state... [id=taaops-translate-input]
+module.tokyo_s3_logging.aws_s3_bucket_lifecycle_configuration.application_logs: Refreshing state... [id=taaops-tokyo-app-logs]
+module.tokyo_s3_logging.aws_s3_bucket_public_access_block.application_logs: Refreshing state... [id=taaops-tokyo-app-logs]
+module.tokyo_s3_logging.aws_s3_bucket_ownership_controls.application_logs: Refreshing state... [id=taaops-tokyo-app-logs]
+module.tokyo_s3_logging.aws_s3_bucket_versioning.application_logs: Refreshing state... [id=taaops-tokyo-app-logs]
+module.tokyo_regional_iam.aws_iam_role.regional_ec2_role: Refreshing state... [id=taaops-tokyo-ec2-role]
+module.tokyo_regional_iam.aws_iam_policy.regional_application: Refreshing state... [id=arn:aws:iam::015195098145:policy/taaops-tokyo-application]
+module.tokyo_monitoring.aws_ssm_association.cw_agent_configure: Refreshing state... [id=67489620-d6a1-4050-b5d6-3182bc1967d8]
+module.tokyo_regional_iam.aws_iam_policy.regional_monitoring: Refreshing state... [id=arn:aws:iam::015195098145:policy/taaops-tokyo-monitoring]
+module.tokyo_s3_logging.aws_s3_bucket_server_side_encryption_configuration.application_logs: Refreshing state... [id=taaops-tokyo-app-logs]
+module.tokyo_monitoring.aws_cloudwatch_metric_alarm.db_connections_low: Refreshing state... [id=AWS/RDS DatabaseConnections DBInstanceIdentifier=taaops-rds]
+module.tokyo_monitoring.aws_cloudwatch_metric_alarm.rdsapp_db_errors: Refreshing state... [id=rdsapp-db-errors-alarm]
+module.tokyo_monitoring.aws_cloudwatch_metric_alarm.asm_rotation_errors: Refreshing state... [id=asm-rotation-errors-alarm]
+aws_ec2_transit_gateway_route_table.shinjuku_tgw_rt_vpn: Refreshing state... [id=tgw-rtb-072cfba280b6b3824]
+aws_ec2_transit_gateway_route_table.shinjuku_tgw_rt_main: Refreshing state... [id=tgw-rtb-04015d7f0cb47bdb1]
+aws_security_group.tokyo_ec2_app_sg: Refreshing state... [id=sg-0daa3eb9880c0c7e0]
+data.aws_iam_policy_document.tokyo_secrets_rotation: Reading...
+data.aws_iam_policy_document.tokyo_secrets_rotation: Read complete after 0s [id=836616388]
+aws_route_table.tokyo_public_rt: Refreshing state... [id=rtb-06358c488d1c7b1f2]
+aws_route53_record.tokyo_alb_origin_cert_validation["origin.jastek.click"]: Refreshing state... [id=Z0226086O3FCYG2A1C50__1c3932a65425f9a76321fd6a59e277c4.origin.jastek.click._CNAME]
+data.aws_iam_policy_document.global_database_access: Reading...
+data.aws_iam_policy_document.global_database_access: Read complete after 0s [id=2936192754]
+aws_iam_policy.cross_region_automation: Refreshing state... [id=arn:aws:iam::015195098145:policy/cross-region-automation-policy]
+aws_nat_gateway.tokyo_regional_nat_gw: Refreshing state... [id=nat-0f8866e5d4a6e1db9]
+aws_db_subnet_group.tokyo_db_subnet_group: Refreshing state... [id=tokyo-db-private-subnet-group]
+aws_vpc_endpoint.ssmmessages: Refreshing state... [id=vpce-01a65dd20d0f8ce50]
+aws_vpc_endpoint.ec2messages: Refreshing state... [id=vpce-09b15323777bae115]
+aws_vpc_endpoint.tokyo_logs: Refreshing state... [id=vpce-0e0a467ba3003e380]
+aws_vpc_endpoint.ssm: Refreshing state... [id=vpce-08166fba765d0fac8]
+aws_iam_policy.bedrock_application_access: Refreshing state... [id=arn:aws:iam::015195098145:policy/bedrock-application-access]
+module.tokyo_translation.aws_s3_bucket_public_access_block.output_pab: Refreshing state... [id=taaops-translate-output]
+module.tokyo_translation.aws_s3_bucket_server_side_encryption_configuration.output_encryption: Refreshing state... [id=taaops-translate-output]
+module.tokyo_translation.aws_s3_bucket_versioning.output_versioning: Refreshing state... [id=taaops-translate-output]
+aws_ec2_transit_gateway_vpc_attachment.tokyo_vpc_attachment: Refreshing state... [id=tgw-attach-03c9284b6794cc398]
+module.tokyo_monitoring.aws_sns_topic_policy.regional_alerts: Refreshing state... [id=arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-alerts]
+aws_iam_role_policy_attachment.route53_cloudwatch: Refreshing state... [id=route53-health-check-role-20260220085501757900000003]
+module.tokyo_s3_logging.aws_s3_bucket_acl.application_logs: Refreshing state... [id=taaops-tokyo-app-logs,private]
+aws_route53_record.nihonmachi_ilb_private_a[0]: Refreshing state... [id=Z00811883LXCVXAI5FDE3_nihonmachi_A]
+aws_customer_gateway.gcp_cgw_2[0]: Refreshing state... [id=cgw-0bcddb9afd0613d20]
+module.tokyo_s3_logging.aws_s3_bucket_server_side_encryption_configuration.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs]
+module.tokyo_s3_logging.data.aws_iam_policy_document.alb_logs_bucket_policy[0]: Reading...
+module.tokyo_s3_logging.data.aws_iam_policy_document.alb_logs_bucket_policy[0]: Read complete after 0s [id=725696604]
+aws_customer_gateway.gcp_cgw_1[0]: Refreshing state... [id=cgw-0c6e8e4f79aa8f261]
+module.tokyo_s3_logging.aws_s3_bucket_public_access_block.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs]
+module.tokyo_s3_logging.aws_s3_bucket_versioning.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs]
+module.tokyo_regional_iam.aws_iam_role_policy_attachment.ec2_ssm_managed_instance_core: Refreshing state... [id=taaops-tokyo-ec2-role-20260220085501813600000004]
+module.tokyo_s3_logging.aws_s3_bucket_lifecycle_configuration.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs]
+module.tokyo_s3_logging.aws_s3_bucket_ownership_controls.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs]
+module.tokyo_regional_iam.aws_iam_role_policy_attachment.ec2_regional_application: Refreshing state... [id=taaops-tokyo-ec2-role-20260220085502047300000005]
+module.tokyo_regional_iam.aws_iam_role_policy_attachment.ec2_cloudwatch_agent: Refreshing state... [id=taaops-tokyo-ec2-role-20260220085502549300000007]
+module.tokyo_regional_iam.aws_iam_role_policy_attachment.ec2_regional_monitoring: Refreshing state... [id=taaops-tokyo-ec2-role-20260220085502491200000006]
+module.tokyo_regional_iam.data.aws_iam_policy_document.database_access[0]: Reading...
+module.tokyo_regional_iam.data.aws_iam_policy_document.database_access[0]: Read complete after 0s [id=2424880819]
+aws_flow_log.tokyo_rds_subnet_flowlogs["c"]: Refreshing state... [id=fl-09961fa78365c8d7f]
+aws_flow_log.tokyo_rds_subnet_flowlogs["b"]: Refreshing state... [id=fl-025ffbae9aa7b98de]
+aws_flow_log.tokyo_rds_subnet_flowlogs["a"]: Refreshing state... [id=fl-065d16fd6c9fc6dd0]
+aws_security_group.tokyo_rds_sg: Refreshing state... [id=sg-09f4b7449b8b8b6bf]
+aws_route_table_association.tokyo_public_rt_assoc_c: Refreshing state... [id=rtbassoc-0e4bf4d3b5ded98df]
+aws_route_table_association.tokyo_public_rt_assoc_a: Refreshing state... [id=rtbassoc-0470001a5227a72a4]
+aws_route_table_association.tokyo_public_rt_assoc_b: Refreshing state... [id=rtbassoc-09669912a696289db]
+aws_iam_role_policy_attachment.cross_region_automation: Refreshing state... [id=cross-region-automation-role-2026022008550387860000000e]
+aws_route_table.tokyo_private_rt: Refreshing state... [id=rtb-07ac6e51a9d66f323]
+aws_iam_role_policy_attachment.saopaulo_bedrock_access: Refreshing state... [id=saopaulo-assumable-role-20260220085502698300000008]
+aws_acm_certificate_validation.tokyo_alb_origin[0]: Refreshing state... [id=2026-02-20 07:05:03.26 +0000 UTC]
+aws_s3_bucket_server_side_encryption_configuration.tokyo_ir_reports_encryption: Refreshing state... [id=taaops-tokyo-incident-reports-015195098145]
+aws_s3_bucket_versioning.tokyo_ir_reports_versioning: Refreshing state... [id=taaops-tokyo-incident-reports-015195098145]
+aws_s3_bucket_public_access_block.tokyo_ir_reports_public_block: Refreshing state... [id=taaops-tokyo-incident-reports-015195098145]
+aws_s3_bucket_lifecycle_configuration.tokyo_ir_reports_lifecycle: Refreshing state... [id=taaops-tokyo-incident-reports-015195098145]
+module.tokyo_s3_logging.aws_s3_bucket_policy.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs]
+aws_ec2_transit_gateway_route_table_propagation.tokyo_vpc_to_vpn_prop: Refreshing state... [id=tgw-rtb-072cfba280b6b3824_tgw-attach-03c9284b6794cc398]
+aws_vpn_connection.tgw_vpn_2[0]: Refreshing state... [id=vpn-0d653f65bd73ef49b]
+aws_ec2_transit_gateway_route_table_propagation.tokyo_vpc_prop: Refreshing state... [id=tgw-rtb-04015d7f0cb47bdb1_tgw-attach-03c9284b6794cc398]
+aws_ec2_transit_gateway_route_table_association.tokyo_vpc_assoc: Refreshing state... [id=tgw-rtb-04015d7f0cb47bdb1_tgw-attach-03c9284b6794cc398]
+module.tokyo_s3_logging.aws_s3_bucket_acl.alb_logs[0]: Refreshing state... [id=taaops-tokyo-alb-logs,private]
+aws_vpn_connection.tgw_vpn_1[0]: Refreshing state... [id=vpn-0b94b11e97ac91e1a]
+aws_route_table_association.tokyo_private_rt_assoc_a: Refreshing state... [id=rtbassoc-0d7d18b8c5df10d74]
+aws_route_table_association.tokyo_private_rt_assoc_c: Refreshing state... [id=rtbassoc-03187494ddb3c2aa8]
+aws_route_table_association.tokyo_private_rt_assoc_b: Refreshing state... [id=rtbassoc-0c3d4709f82441d25]
+aws_rds_cluster.taaops_rds_cluster: Refreshing state... [id=taaops-aurora-cluster-02]
+aws_ec2_transit_gateway_route_table_association.gcp_vpn2_assoc[0]: Refreshing state... [id=tgw-rtb-072cfba280b6b3824_tgw-attach-037ce0b51e9e09cec]
+aws_ec2_transit_gateway_route_table_propagation.gcp_vpn2_prop[0]: Refreshing state... [id=tgw-rtb-04015d7f0cb47bdb1_tgw-attach-037ce0b51e9e09cec]
+aws_ec2_transit_gateway_route_table_propagation.gcp_vpn2_to_vpn_prop[0]: Refreshing state... [id=tgw-rtb-072cfba280b6b3824_tgw-attach-037ce0b51e9e09cec]
+aws_ec2_transit_gateway_route_table_propagation.gcp_vpn1_to_vpn_prop[0]: Refreshing state... [id=tgw-rtb-072cfba280b6b3824_tgw-attach-012f0d193a31b9d09]
+aws_ec2_transit_gateway_route_table_association.gcp_vpn1_assoc[0]: Refreshing state... [id=tgw-rtb-072cfba280b6b3824_tgw-attach-012f0d193a31b9d09]
+aws_ec2_transit_gateway_route_table_propagation.gcp_vpn1_prop[0]: Refreshing state... [id=tgw-rtb-04015d7f0cb47bdb1_tgw-attach-012f0d193a31b9d09]
+aws_rds_cluster_instance.taaops_rds_cluster_instances[0]: Refreshing state... [id=taaops-aurora-0]
+aws_rds_cluster_instance.taaops_rds_cluster_instances[1]: Refreshing state... [id=taaops-aurora-1]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+-/+ destroy and then create replacement
++/- create replacement and then destroy
+
+Terraform will perform the following actions:
+
+  # aws_autoscaling_group.tokyo_app_asg will be created
+  + resource "aws_autoscaling_group" "tokyo_app_asg" {
+      + arn                              = (known after apply)
+      + availability_zones               = (known after apply)
+      + default_cooldown                 = (known after apply)
+      + desired_capacity                 = 2
+      + force_delete                     = false
+      + force_delete_warm_pool           = false
+      + health_check_grace_period        = 300
+      + health_check_type                = "ELB"
+      + id                               = (known after apply)
+      + ignore_failed_scaling_activities = false
+      + load_balancers                   = (known after apply)
+      + max_size                         = 6
+      + metrics_granularity              = "1Minute"
+      + min_size                         = 2
+      + name                             = "tokyo-app-asg"
+      + name_prefix                      = (known after apply)
+      + predicted_capacity               = (known after apply)
+      + protect_from_scale_in            = false
+      + service_linked_role_arn          = (known after apply)
+      + target_group_arns                = (known after apply)
+      + vpc_zone_identifier              = [
+          + "subnet-01d5cf51aee01a7d2",
+          + "subnet-04f168f4dd653066d",
+          + "subnet-09e0241232f866da8",
+        ]
+      + wait_for_capacity_timeout        = "10m"
+      + warm_pool_size                   = (known after apply)
+
+      + launch_template {
+          + id      = (known after apply)
+          + name    = (known after apply)
+          + version = "$Latest"
+        }
+
+      + mixed_instances_policy (known after apply)
+
+      + tag {
+          + key                 = "Name"
+          + propagate_at_launch = true
+          + value               = "tokyo-app-instance"
+        }
+
+      + traffic_source (known after apply)
+    }
+
+  # aws_db_subnet_group.tokyo_db_subnet_group must be replaced
++/- resource "aws_db_subnet_group" "tokyo_db_subnet_group" {
+      ~ arn                     = "arn:aws:rds:ap-northeast-1:015195098145:subgrp:tokyo-db-private-subnet-group" -> (known after apply)
+      ~ id                      = "tokyo-db-private-subnet-group" -> (known after apply)
+      ~ name                    = "tokyo-db-private-subnet-group" -> "shinjuku-db-private-subnet-group" # forces replacement
+      + name_prefix             = (known after apply)
+      ~ subnet_ids              = [
+          - "subnet-01d9aff93c17d16bd",
+          - "subnet-0b89e73971e8cb6f0",
+          - "subnet-0f045eef32cd03bfa",
+          + "subnet-01d5cf51aee01a7d2",
+          + "subnet-04f168f4dd653066d",
+          + "subnet-09e0241232f866da8",
+        ]
+      ~ supported_network_types = [
+          - "IPV4",
+        ] -> (known after apply)
+        tags                    = {
+            "Name"    = "tokyo-db-subnet-group"
+            "Purpose" = "DatabaseSecure"
+        }
+      ~ vpc_id                  = "vpc-05f79c63979448fcb" -> (known after apply)
+        # (2 unchanged attributes hidden)
+    }
+
+  # aws_iam_policy.global_database_access will be created
+  + resource "aws_iam_policy" "global_database_access" {
+      + arn         = (known after apply)
+      + description = "Global database access policy for all regions"
+      + id          = (known after apply)
+      + name        = "global-database-access"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "secretsmanager:GetSecretValue",
+                          + "secretsmanager:DescribeSecret",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:secretsmanager:ap-northeast-1:015195098145:secret:taaops/rds/mysql-79lmCr"
+                      + Sid      = "DatabaseSecretAccess"
+                    },
+                  + {
+                      + Action   = [
+                          + "ssm:GetParameters",
+                          + "ssm:GetParameterHistory",
+                          + "ssm:GetParameter",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:ssm:sa-east-1:015195098145:parameter/taaops/database/*",
+                          + "arn:aws:ssm:ap-northeast-1:015195098145:parameter/taaops/database/*",
+                        ]
+                      + Sid      = "DatabaseParameters"
+                    },
+                  + {
+                      + Action    = [
+                          + "kms:GenerateDataKey",
+                          + "kms:Decrypt",
+                        ]
+                      + Condition = {
+                          + StringEquals = {
+                              + "kms:ViaService" = [
+                                  + "secretsmanager.ap-northeast-1.amazonaws.com",
+                                  + "secretsmanager.sa-east-1.amazonaws.com",
+                                  + "rds.ap-northeast-1.amazonaws.com",
+                                ]
+                            }
+                        }
+                      + Effect    = "Allow"
+                      + Resource  = "arn:aws:kms:ap-northeast-1:015195098145:key/ab66dd6d-12d0-41da-8a99-9e9d58dcd4f5"
+                      + Sid       = "DatabaseKMSAccess"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + policy_id   = (known after apply)
+      + tags_all    = {
+          + "ManagedBy" = "Terraform"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+    }
+
+  # aws_iam_policy.tokyo_ir_lambda_policy will be created
+  + resource "aws_iam_policy" "tokyo_ir_lambda_policy" {
+      + arn         = (known after apply)
+      + id          = (known after apply)
+      + name        = "taaops-tokyo-ir-lambda-policy"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "logs:StartQuery",
+                          + "logs:GetQueryResults",
+                          + "logs:DescribeLogGroups",
+                          + "logs:DescribeLogStreams",
+                          + "logs:FilterLogEvents",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                  + {
+                      + Action   = [
+                          + "cloudwatch:DescribeAlarms",
+                          + "cloudwatch:GetMetricData",
+                          + "cloudwatch:GetMetricStatistics",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                  + {
+                      + Action   = [
+                          + "ssm:GetParameter",
+                          + "ssm:GetParameters",
+                          + "ssm:GetParametersByPath",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:ssm:*:015195098145:parameter/lab/db/*"
+                    },
+                  + {
+                      + Action   = [
+                          + "secretsmanager:GetSecretValue",
+                          + "secretsmanager:DescribeSecret",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:secretsmanager:*:015195098145:secret:taaops/rds/mysql*"
+                    },
+                  + {
+                      + Action   = [
+                          + "s3:PutObject",
+                          + "s3:PutObjectAcl",
+                          + "s3:GetObject",
+                          + "s3:ListBucket",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:s3:::taaops-tokyo-incident-reports-015195098145",
+                          + "arn:aws:s3:::taaops-tokyo-incident-reports-015195098145/*",
+                        ]
+                    },
+                  + {
+                      + Action   = [
+                          + "s3:PutObject",
+                          + "s3:PutObjectAcl",
+                          + "s3:GetObject",
+                          + "s3:ListBucket",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:s3:::taaops-translate-input",
+                          + "arn:aws:s3:::taaops-translate-input/*",
+                        ]
+                    },
+                  + {
+                      + Action   = [
+                          + "sns:Publish",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-reports-topic"
+                    },
+                  + {
+                      + Action   = [
+                          + "bedrock:InvokeModel",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                  + {
+                      + Action   = [
+                          + "ssm:StartAutomationExecution",
+                          + "ssm:GetAutomationExecution",
+                          + "ssm:DescribeAutomationExecutions",
+                          + "ssm:DescribeAutomationStepExecutions",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:ssm:ap-northeast-1:015195098145:automation-definition/taaops-tokyo-incident-report:*",
+                          + "arn:aws:ssm:ap-northeast-1:015195098145:automation-execution/*",
+                        ]
+                    },
+                  + {
+                      + Action   = [
+                          + "kms:Decrypt",
+                          + "kms:DescribeKey",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:kms:ap-northeast-1:015195098145:key/7cce62c4-1541-43f5-8ec5-2769398cc927"
+                    },
+                  + {
+                      + Action   = [
+                          + "autoscaling:DescribeAutoScalingGroups",
+                          + "autoscaling:StartInstanceRefresh",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + policy_id   = (known after apply)
+      + tags        = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-tokyo-ir-lambda-policy"
+          + "Project"     = "taaops"
+          + "Purpose"     = "Incident report Lambda permissions"
+          + "Region"      = "Tokyo"
+        }
+      + tags_all    = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-tokyo-ir-lambda-policy"
+          + "Project"     = "taaops"
+          + "Purpose"     = "Incident report Lambda permissions"
+          + "Region"      = "Tokyo"
+        }
+    }
+
+  # aws_iam_policy.tokyo_secrets_rotation will be created
+  + resource "aws_iam_policy" "tokyo_secrets_rotation" {
+      + arn         = (known after apply)
+      + id          = (known after apply)
+      + name        = "taaops-secrets-rotation-policy"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "secretsmanager:UpdateSecretVersionStage",
+                          + "secretsmanager:PutSecretValue",
+                          + "secretsmanager:ListSecretVersionIds",
+                          + "secretsmanager:GetSecretValue",
+                          + "secretsmanager:GetRandomPassword",
+                          + "secretsmanager:DescribeSecret",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:secretsmanager:ap-northeast-1:015195098145:secret:taaops/rds/mysql-79lmCr"
+                      + Sid      = "SecretsManagerRotation"
+                    },
+                  + {
+                      + Action    = [
+                          + "kms:GenerateDataKey",
+                          + "kms:Decrypt",
+                        ]
+                      + Condition = {
+                          + StringEquals = {
+                              + "kms:ViaService" = "secretsmanager.ap-northeast-1.amazonaws.com"
+                            }
+                        }
+                      + Effect    = "Allow"
+                      + Resource  = "arn:aws:kms:ap-northeast-1:015195098145:key/ab66dd6d-12d0-41da-8a99-9e9d58dcd4f5"
+                      + Sid       = "KmsDecryptForSecrets"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + policy_id   = (known after apply)
+      + tags_all    = {
+          + "ManagedBy" = "Terraform"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+    }
+
+  # aws_iam_policy.tokyo_ssm_automation_policy will be created
+  + resource "aws_iam_policy" "tokyo_ssm_automation_policy" {
+      + arn         = (known after apply)
+      + id          = (known after apply)
+      + name        = "taaops-tokyo-ssm-automation-policy"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "autoscaling:DescribeAutoScalingGroups",
+                          + "autoscaling:StartInstanceRefresh",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                  + {
+                      + Action   = [
+                          + "s3:GetObject",
+                          + "s3:PutObject",
+                          + "s3:ListBucket",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:s3:::taaops-tokyo-incident-reports-015195098145",
+                          + "arn:aws:s3:::taaops-tokyo-incident-reports-015195098145/*",
+                          + "arn:aws:s3:::taaops-translate-input",
+                          + "arn:aws:s3:::taaops-translate-input/*",
+                        ]
+                    },
+                  + {
+                      + Action   = [
+                          + "kms:Decrypt",
+                          + "kms:DescribeKey",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:kms:ap-northeast-1:015195098145:key/7cce62c4-1541-43f5-8ec5-2769398cc927"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + policy_id   = (known after apply)
+      + tags        = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-tokyo-ssm-automation-policy"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SSM automation permissions"
+          + "Region"      = "Tokyo"
+        }
+      + tags_all    = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-tokyo-ssm-automation-policy"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SSM automation permissions"
+          + "Region"      = "Tokyo"
+        }
+    }
+
+  # aws_iam_role.tokyo_secrets_rotation_lambda_role will be created
+  + resource "aws_iam_role" "tokyo_secrets_rotation_lambda_role" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "lambda.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "taaops-secrets-rotation-lambda-role"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-secrets-rotation-lambda-role"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SecretsRotation"
+          + "Region"      = "Tokyo"
+        }
+      + tags_all              = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-secrets-rotation-lambda-role"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SecretsRotation"
+          + "Region"      = "Tokyo"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # aws_iam_role_policy_attachment.saopaulo_database_access will be created
+  + resource "aws_iam_role_policy_attachment" "saopaulo_database_access" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + role       = "saopaulo-assumable-role"
+    }
+
+  # aws_iam_role_policy_attachment.tokyo_ir_lambda_attach will be created
+  + resource "aws_iam_role_policy_attachment" "tokyo_ir_lambda_attach" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + role       = "taaops-tokyo-ir-lambda-role"
+    }
+
+  # aws_iam_role_policy_attachment.tokyo_secrets_rotation_attach will be created
+  + resource "aws_iam_role_policy_attachment" "tokyo_secrets_rotation_attach" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + role       = "taaops-secrets-rotation-lambda-role"
+    }
+
+  # aws_iam_role_policy_attachment.tokyo_secrets_rotation_lambda_basic will be created
+  + resource "aws_iam_role_policy_attachment" "tokyo_secrets_rotation_lambda_basic" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      + role       = "taaops-secrets-rotation-lambda-role"
+    }
+
+  # aws_iam_role_policy_attachment.tokyo_secrets_rotation_lambda_vpc will be created
+  + resource "aws_iam_role_policy_attachment" "tokyo_secrets_rotation_lambda_vpc" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+      + role       = "taaops-secrets-rotation-lambda-role"
+    }
+
+  # aws_iam_role_policy_attachment.tokyo_ssm_automation_attach will be created
+  + resource "aws_iam_role_policy_attachment" "tokyo_ssm_automation_attach" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + role       = "taaops-tokyo-ssm-automation-role"
+    }
+
+  # aws_kms_alias.taaops_kms_alias01 will be created
+  + resource "aws_kms_alias" "taaops_kms_alias01" {
+      + arn            = (known after apply)
+      + id             = (known after apply)
+      + name           = "alias/taaops-key01"
+      + name_prefix    = (known after apply)
+      + target_key_arn = (known after apply)
+      + target_key_id  = "7cce62c4-1541-43f5-8ec5-2769398cc927"
+    }
+
+  # aws_lambda_function.tokyo_ir_lambda will be created
+  + resource "aws_lambda_function" "tokyo_ir_lambda" {
+      + architectures                  = (known after apply)
+      + arn                            = (known after apply)
+      + filename                       = "./lambda/ir_reporter.zip"
+      + function_name                  = "taaops-tokyo-ir-reporter"
+      + handler                        = "handler.lambda_handler"
+      + id                             = (known after apply)
+      + invoke_arn                     = (known after apply)
+      + last_modified                  = (known after apply)
+      + memory_size                    = 128
+      + package_type                   = "Zip"
+      + publish                        = false
+      + qualified_arn                  = (known after apply)
+      + qualified_invoke_arn           = (known after apply)
+      + reserved_concurrent_executions = -1
+      + role                           = "arn:aws:iam::015195098145:role/taaops-tokyo-ir-lambda-role"
+      + runtime                        = "python3.11"
+      + signing_job_arn                = (known after apply)
+      + signing_profile_version_arn    = (known after apply)
+      + skip_destroy                   = false
+      + source_code_hash               = "tv2GLyNuozillppS7vJ7ERc8H9Z4TDliKzPn2ANaxss="
+      + source_code_size               = (known after apply)
+      + tags                           = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-tokyo-ir-reporter"
+          + "Project"     = "taaops"
+          + "Purpose"     = "Automated incident report generation"
+          + "Region"      = "Tokyo"
+        }
+      + tags_all                       = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-tokyo-ir-reporter"
+          + "Project"     = "taaops"
+          + "Purpose"     = "Automated incident report generation"
+          + "Region"      = "Tokyo"
+        }
+      + timeout                        = 60
+      + version                        = (known after apply)
+
+      + environment {
+          + variables = {
+              + "APP_LOG_GROUP"       = "/aws/ec2/rdsapp"
+              + "AUTOMATION_DOC_NAME" = "taaops-tokyo-incident-report"
+              + "BEDROCK_MODEL_ID"    = "mistral.mistral-large-3-675b-instruct"
+              + "REPORT_BUCKET"       = "taaops-tokyo-incident-reports-015195098145"
+              + "SECRET_ID"           = "taaops/rds/mysql"
+              + "SNS_TOPIC_ARN"       = "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-reports-topic"
+              + "SSM_PARAM_PATH"      = "/lab/db/"
+              + "TRANSLATION_BUCKET"  = "taaops-translate-input"
+              + "WAF_LOG_GROUP"       = "aws-waf-logs-taaops-tokyo-regional-waf"
+            }
+        }
+
+      + ephemeral_storage (known after apply)
+
+      + tracing_config (known after apply)
+    }
+
+  # aws_lambda_function.tokyo_secrets_rotation will be created
+  + resource "aws_lambda_function" "tokyo_secrets_rotation" {
+      + architectures                  = (known after apply)
+      + arn                            = (known after apply)
+      + filename                       = "./../lambda/SecretsManagertaaops-lab1-asm-rotation.zip"
+      + function_name                  = "SecretsManagertaaops-lab1-asm-rotation"
+      + handler                        = "lambda_function.lambda_handler"
+      + id                             = (known after apply)
+      + invoke_arn                     = (known after apply)
+      + last_modified                  = (known after apply)
+      + memory_size                    = 256
+      + package_type                   = "Zip"
+      + publish                        = false
+      + qualified_arn                  = (known after apply)
+      + qualified_invoke_arn           = (known after apply)
+      + reserved_concurrent_executions = -1
+      + role                           = (known after apply)
+      + runtime                        = "python3.10"
+      + signing_job_arn                = (known after apply)
+      + signing_profile_version_arn    = (known after apply)
+      + skip_destroy                   = false
+      + source_code_hash               = "4IvCSX+qEWtBG2gA59Slx/W3Zzb3XS55jsF+ucIPb7o="
+      + source_code_size               = (known after apply)
+      + tags                           = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "SecretsManagertaaops-lab1-asm-rotation"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SecretsRotation"
+          + "Region"      = "Tokyo"
+        }
+      + tags_all                       = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "SecretsManagertaaops-lab1-asm-rotation"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SecretsRotation"
+          + "Region"      = "Tokyo"
+        }
+      + timeout                        = 30
+      + version                        = (known after apply)
+
+      + ephemeral_storage (known after apply)
+
+      + tracing_config (known after apply)
+
+      + vpc_config {
+          + ipv6_allowed_for_dual_stack = false
+          + security_group_ids          = (known after apply)
+          + subnet_ids                  = [
+              + "subnet-01d5cf51aee01a7d2",
+              + "subnet-04f168f4dd653066d",
+              + "subnet-09e0241232f866da8",
+            ]
+          + vpc_id                      = (known after apply)
+        }
+    }
+
+  # aws_lambda_permission.tokyo_allow_cloudwatch_invoke will be created
+  + resource "aws_lambda_permission" "tokyo_allow_cloudwatch_invoke" {
+      + action              = "lambda:InvokeFunction"
+      + function_name       = "taaops-tokyo-ir-reporter"
+      + id                  = (known after apply)
+      + principal           = "sns.amazonaws.com"
+      + source_arn          = "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-alerts"
+      + statement_id        = "AllowExecutionFromCloudWatch"
+      + statement_id_prefix = (known after apply)
+    }
+
+  # aws_lambda_permission.tokyo_allow_secretsmanager_invoke will be created
+  + resource "aws_lambda_permission" "tokyo_allow_secretsmanager_invoke" {
+      + action              = "lambda:InvokeFunction"
+      + function_name       = "SecretsManagertaaops-lab1-asm-rotation"
+      + id                  = (known after apply)
+      + principal           = "secretsmanager.amazonaws.com"
+      + source_arn          = "arn:aws:secretsmanager:ap-northeast-1:015195098145:secret:taaops/rds/mysql-79lmCr"
+      + statement_id        = "AllowSecretsManagerInvoke"
+      + statement_id_prefix = (known after apply)
+    }
+
+  # aws_lambda_permission.tokyo_allow_sns_invoke will be created
+  + resource "aws_lambda_permission" "tokyo_allow_sns_invoke" {
+      + action              = "lambda:InvokeFunction"
+      + function_name       = "taaops-tokyo-ir-reporter"
+      + id                  = (known after apply)
+      + principal           = "sns.amazonaws.com"
+      + source_arn          = "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-trigger-topic"
+      + statement_id        = "AllowExecutionFromSNS"
+      + statement_id_prefix = (known after apply)
+    }
+
+  # aws_launch_template.tokyo_app_template will be created
+  + resource "aws_launch_template" "tokyo_app_template" {
+      + arn                    = (known after apply)
+      + default_version        = (known after apply)
+      + id                     = (known after apply)
+      + image_id               = "ami-0d52744d6551d851e"
+      + instance_type          = "t3.micro"
+      + latest_version         = (known after apply)
+      + name                   = (known after apply)
+      + name_prefix            = "tokyo-app-"
+      + tags_all               = {
+          + "ManagedBy" = "Terraform"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+      + user_data              = "IyEvYmluL2Jhc2gKc2V0IC1lCgojIExvZyAqZXZlcnl0aGluZyogdXNlci1kYXRhIGRvZXMKZXhlYyA+ID4odGVlIC92YXIvbG9nL3VzZXItZGF0YS5sb2cgfCBsb2dnZXIgLXQgdXNlci1kYXRhIC1zIDI+L2Rldi9jb25zb2xlKSAyPiYxCgplY2hvICI9PT0gdXNlci1kYXRhIHN0YXJ0ID09PSIKZGF0ZQoKcmV0cnlfcGtnKCkgewogIGxvY2FsIGNtZD0iJDEiCiAgbG9jYWwgdHJpZXM9NQogIGxvY2FsIGRlbGF5PTEwCiAgbG9jYWwgaQogIGZvciBpIGluICQoc2VxIDEgIiR0cmllcyIpOyBkbwogICAgaWYgZXZhbCAiJGNtZCI7IHRoZW4KICAgICAgcmV0dXJuIDAKICAgIGZpCiAgICBlY2hvICJwYWNrYWdlIGluc3RhbGwgZmFpbGVkIChhdHRlbXB0ICRpLyR0cmllcykuIFJldHJ5aW5nIGluICR7ZGVsYXl9cy4uLiIKICAgIHNsZWVwICIkZGVsYXkiCiAgZG9uZQogIHJldHVybiAxCn0KCnJldHJ5X3BrZyAiREVCSUFOX0ZST05URU5EPW5vbmludGVyYWN0aXZlIGFwdC1nZXQgdXBkYXRlIC15IgoKIyBDb3JlIHJ1bnRpbWUgKyBkZWJ1ZyB0b29saW5nIChzaW5nbGUgaW5zdGFsbCkKcmV0cnlfcGtnICJERUJJQU5fRlJPTlRFTkQ9bm9uaW50ZXJhY3RpdmUgYXB0LWdldCBpbnN0YWxsIC15IFwKICBweXRob24zIHB5dGhvbjMtcGlwIHB5dGhvbjMtZmxhc2sgcHl0aG9uMy1weW15c3FsIHB5dGhvbjMtYm90bzMgXAogIG1hcmlhZGItY2xpZW50IG5ldGNhdC1vcGVuYnNkIFwKICBkbnN1dGlscyBqcSBjdXJsIHdnZXQgXAogIGlwcm91dGUyIG5ldC10b29scyB0cmFjZXJvdXRlIHRjcGR1bXAgdGVsbmV0IgoKCm1rZGlyIC1wIC9vcHQvcmRzYXBwCm1rZGlyIC1wIC9vcHQvcmRzYXBwL3N0YXRpYwppZiBbICEgLWYgL29wdC9yZHNhcHAvc3RhdGljL2V4YW1wbGUudHh0IF07IHRoZW4KICBjYXQgPi9vcHQvcmRzYXBwL3N0YXRpYy9leGFtcGxlLnR4dCA8PCdUWFQnCnN0YXRpYyBleGFtcGxlIHYxClRYVAogICMgRm9yY2UgYSBzdGFibGUgbXRpbWUgc28gRVRhZy9MYXN0LU1vZGlmaWVkIGFyZSBjb25zaXN0ZW50IGFjcm9zcyBpbnN0YW5jZXMKICB0b3VjaCAtdCAyMDI2MDIwNzAwMDAgL29wdC9yZHNhcHAvc3RhdGljL2V4YW1wbGUudHh0CmZpCgojIFBsYWNlaG9sZGVyIGltYWdlIGZvciBDbG91ZEZyb250IGNhY2hlIHRlc3RzLiBUaGlzIGlzIGEgMXgxIHRyYW5zcGFyZW50IFBORy4KaWYgWyAhIC1mIC9vcHQvcmRzYXBwL3N0YXRpYy9wbGFjZWhvbGRlci5wbmcgXTsgdGhlbgogIGJhc2U2NCAtZCA+L29wdC9yZHNhcHAvc3RhdGljL3BsYWNlaG9sZGVyLnBuZyA8PCdCNjQnCmlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFBVUFBQUFIQ0FZQUFBREFwNGZ1QUFBQUFYTlNSMElBcnM0YzZRQUFBQVJuUVUxQkFBQ3gKand2OFlRVUFBQUFKY0VoWmN3QUFDeElBQUFzU0FkTGRmdndBQUFDUVNVUkJWQmhYRGNoZEM4RlFBSURoOTJ5bnNZK3NqaXkyU0pZTApyVWJ5VVpMbTkvb2ovb0FiSlhFcmpUdWJ0Y056K1Fnd3RlZjZWRlZCOFMweGJCOWhXTFpPQmtPMnl4V0gwNFhhYWZBL0QxMlZ4R0dMCitTSkZSWDNrZnBZUyt3NnhJOGxxa0dZWFk3M0xxRTJMNCsxTkVJVElRaUNpWktNL3p3ZEpSOUZUSHE1cUk4ZVRLZmtyWjlTRTgvMUsKS0FRL3ZNVWtMYm9vRHpFQUFBQUFTVVZPUks1Q1lJST0KQjY0CiAgIyBTdGFibGUgbXRpbWUgZm9yIGNhY2hlIHRlc3RzCiAgdG91Y2ggLXQgMjAyNjAyMDcwMDAwIC9vcHQvcmRzYXBwL3N0YXRpYy9wbGFjZWhvbGRlci5wbmcKZmkKCgplY2hvICI9PT0gUmVnaW9uIGZyb20gSU1EUyA9PT0iClRPS0VOPSQoY3VybCAtc1ggUFVUICJodHRwOi8vMTY5LjI1NC4xNjkuMjU0L2xhdGVzdC9hcGkvdG9rZW4iIFwKICAtSCAiWC1hd3MtZWMyLW1ldGFkYXRhLXRva2VuLXR0bC1zZWNvbmRzOiAyMTYwMCIgfHwgdHJ1ZSkKY3VybCAtc0ggIlgtYXdzLWVjMi1tZXRhZGF0YS10b2tlbjogJFRPS0VOIiBcCiAgaHR0cDovLzE2OS4yNTQuMTY5LjI1NC9sYXRlc3QvbWV0YS1kYXRhL3BsYWNlbWVudC9yZWdpb24gfHwgdHJ1ZQplY2hvCgplY2hvICI9PT0gVG9vbCB2ZXJzaW9ucyA9PT0iCm15c3FsIC0tdmVyc2lvbiB8fCB0cnVlCm5jIC1oIDI+JjEgfCBoZWFkIC1uIDIgfHwgdHJ1ZQpkaWcgLXYgMj4mMSB8IGhlYWQgLW4gMSB8fCB0cnVlCmpxIC0tdmVyc2lvbiB8fCB0cnVlCmVjaG8KCmNhdCA+L29wdC9yZHNhcHAvYXBwLnB5IDw8J1BZJwppbXBvcnQganNvbgppbXBvcnQgb3MKaW1wb3J0IGJvdG8zCmltcG9ydCBweW15c3FsCmZyb20gZmxhc2sgaW1wb3J0IEZsYXNrLCByZXF1ZXN0CgpSRUdJT04gPSBvcy5lbnZpcm9uLmdldCgiQVdTX1JFR0lPTiIsICJ1cy13ZXN0LTIiKQpTRUNSRVRfSUQgPSBvcy5lbnZpcm9uLmdldCgiU0VDUkVUX0lEIiwgInRhYW9wcy9yZHMvbXlzcWwiKQpQQVJBTV9EQl9OQU1FID0gb3MuZW52aXJvbi5nZXQoIlBBUkFNX0RCX05BTUUiLCAiL2xhYi9kYi9uYW1lIikKCnNlY3JldHMgPSBib3RvMy5jbGllbnQoInNlY3JldHNtYW5hZ2VyIiwgcmVnaW9uX25hbWU9UkVHSU9OKQpzc20gPSBib3RvMy5jbGllbnQoInNzbSIsIHJlZ2lvbl9uYW1lPVJFR0lPTikKCmRlZiBnZXRfZGJfbmFtZSgpOgogICAgcmVzcCA9IHNzbS5nZXRfcGFyYW1ldGVyKE5hbWU9UEFSQU1fREJfTkFNRSwgV2l0aERlY3J5cHRpb249VHJ1ZSkKICAgIHJldHVybiByZXNwWyJQYXJhbWV0ZXIiXVsiVmFsdWUiXQoKZGVmIGdldF9kYl9jcmVkcygpOgogICAgcmVzcCA9IHNlY3JldHMuZ2V0X3NlY3JldF92YWx1ZShTZWNyZXRJZD1TRUNSRVRfSUQpCiAgICByZXR1cm4ganNvbi5sb2FkcyhyZXNwWyJTZWNyZXRTdHJpbmciXSkKCmRlZiBnZXRfY29ubigpOgogICAgYyA9IGdldF9kYl9jcmVkcygpCiAgICBob3N0ID0gY1siaG9zdCJdCiAgICB1c2VyID0gY1sidXNlcm5hbWUiXQogICAgcGFzc3dvcmQgPSBjWyJwYXNzd29yZCJdCiAgICBwb3J0ID0gaW50KGMuZ2V0KCJwb3J0IiwgMzMwNikpCiAgICBkYiA9IGdldF9kYl9uYW1lKCkKICAgIHJldHVybiBweW15c3FsLmNvbm5lY3QoCiAgICAgICAgaG9zdD1ob3N0LCB1c2VyPXVzZXIsIHBhc3N3b3JkPXBhc3N3b3JkLCBwb3J0PXBvcnQsIGRhdGFiYXNlPWRiLCBhdXRvY29tbWl0PVRydWUKICAgICkKCmFwcCA9IEZsYXNrKF9fbmFtZV9fKQoKQGFwcC5yb3V0ZSgiLyIpCmRlZiBob21lKCk6CiAgICByZXR1cm4gIiIiCiAgICA8aDI+RUMyIOKGkiBSRFMgTm90ZXMgQXBwPC9oMj4KICAgIDxwPkdFVCAvaW5pdDwvcD4KICAgIDxwPlBPU1QgL2FkZD9ub3RlPWhlbGxvPC9wPgogICAgPHA+R0VUIC9saXN0PC9wPgogICAgIiIiCgpAYXBwLnJvdXRlKCIvaW5pdCIpCmRlZiBpbml0X2RiKCk6CiAgICBjID0gZ2V0X2RiX2NyZWRzKCkKICAgIGhvc3QgPSBjWyJob3N0Il0KICAgIHVzZXIgPSBjWyJ1c2VybmFtZSJdCiAgICBwYXNzd29yZCA9IGNbInBhc3N3b3JkIl0KICAgIHBvcnQgPSBpbnQoYy5nZXQoInBvcnQiLCAzMzA2KSkKCiAgICBkYm5hbWUgPSBnZXRfZGJfbmFtZSgpCgogICAgY29ubiA9IHB5bXlzcWwuY29ubmVjdChob3N0PWhvc3QsIHVzZXI9dXNlciwgcGFzc3dvcmQ9cGFzc3dvcmQsIHBvcnQ9cG9ydCwgYXV0b2NvbW1pdD1UcnVlKQogICAgY3VyID0gY29ubi5jdXJzb3IoKQogICAgY3VyLmV4ZWN1dGUoZiJDUkVBVEUgREFUQUJBU0UgSUYgTk9UIEVYSVNUUyBge2RibmFtZX1gOyIpCiAgICBjdXIuZXhlY3V0ZShmIlVTRSBge2RibmFtZX1gOyIpCiAgICBjdXIuZXhlY3V0ZSgiIiIKICAgICAgICBDUkVBVEUgVEFCTEUgSUYgTk9UIEVYSVNUUyBub3RlcyAoCiAgICAgICAgICAgIGlkIElOVCBBVVRPX0lOQ1JFTUVOVCBQUklNQVJZIEtFWSwKICAgICAgICAgICAgbm90ZSBWQVJDSEFSKDI1NSkgTk9UIE5VTEwKICAgICAgICApOwogICAgIiIiKQogICAgY3VyLmNsb3NlKCkKICAgIGNvbm4uY2xvc2UoKQogICAgcmV0dXJuIGYiSW5pdGlhbGl6ZWQge2RibmFtZX0gKyBub3RlcyB0YWJsZS4iCgpAYXBwLnJvdXRlKCIvYWRkIiwgbWV0aG9kcz1bIlBPU1QiLCAiR0VUIl0pCmRlZiBhZGRfbm90ZSgpOgogICAgbm90ZSA9IHJlcXVlc3QuYXJncy5nZXQoIm5vdGUiLCAiIikuc3RyaXAoKQogICAgaWYgbm90IG5vdGU6CiAgICAgICAgcmV0dXJuICJNaXNzaW5nIG5vdGUgcGFyYW0uIFRyeTogL2FkZD9ub3RlPWhlbGxvIiwgNDAwCiAgICBjb25uID0gZ2V0X2Nvbm4oKQogICAgY3VyID0gY29ubi5jdXJzb3IoKQogICAgY3VyLmV4ZWN1dGUoIklOU0VSVCBJTlRPIG5vdGVzKG5vdGUpIFZBTFVFUyglcyk7IiwgKG5vdGUsKSkKICAgIGN1ci5jbG9zZSgpCiAgICBjb25uLmNsb3NlKCkKICAgIHJldHVybiBmIkluc2VydGVkIG5vdGU6IHtub3RlfSIKCkBhcHAucm91dGUoIi9saXN0IikKZGVmIGxpc3Rfbm90ZXMoKToKICAgIGNvbm4gPSBnZXRfY29ubigpCiAgICBjdXIgPSBjb25uLmN1cnNvcigpCiAgICBjdXIuZXhlY3V0ZSgiU0VMRUNUIGlkLCBub3RlIEZST00gbm90ZXMgT1JERVIgQlkgaWQgREVTQzsiKQogICAgcm93cyA9IGN1ci5mZXRjaGFsbCgpCiAgICBjdXIuY2xvc2UoKQogICAgY29ubi5jbG9zZSgpCiAgICBvdXQgPSAiPGgzPk5vdGVzPC9oMz48dWw+IgogICAgZm9yIHIgaW4gcm93czoKICAgICAgICBvdXQgKz0gZiI8bGk+e3JbMF19OiB7clsxXX08L2xpPiIKICAgIG91dCArPSAiPC91bD4iCiAgICByZXR1cm4gb3V0CgpAYXBwLnJvdXRlKCIvYXBpL3B1YmxpYy1mZWVkIikKZGVmIHB1YmxpY19mZWVkKCk6CiAgICByZXR1cm4gewogICAgICAgICJzdGF0dXMiOiAib2siLAogICAgICAgICJzZXJ2aWNlIjogInRva3lvLXJkc2FwcCIsCiAgICAgICAgInJlZ2lvbiI6IFJFR0lPTgogICAgfSwgMjAwCgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgYXBwLnJ1bihob3N0PSIwLjAuMC4wIiwgcG9ydD04MCkKUFkKCmNhdCA+L2V0Yy9zeXN0ZW1kL3N5c3RlbS9yZHNhcHAuc2VydmljZSA8PCdTRVJWSUNFJwpbVW5pdF0KRGVzY3JpcHRpb249VG9reW8gRUMyIHRvIFJEUyBOb3RlcyBBcHAKQWZ0ZXI9bmV0d29yay50YXJnZXQKCltTZXJ2aWNlXQpXb3JraW5nRGlyZWN0b3J5PS9vcHQvcmRzYXBwCkVudmlyb25tZW50PUFXU19SRUdJT049YXAtbm9ydGhlYXN0LTEKRW52aXJvbm1lbnQ9U0VDUkVUX0lEPXRhYW9wcy9yZHMvbXlzcWwKRW52aXJvbm1lbnQ9UEFSQU1fREJfTkFNRT0vdGFhb3BzL2RiL25hbWUKRXhlY1N0YXJ0PS91c3IvYmluL3B5dGhvbjMgL29wdC9yZHNhcHAvYXBwLnB5ClJlc3RhcnQ9YWx3YXlzClN0YW5kYXJkT3V0cHV0PWFwcGVuZDovdmFyL2xvZy9yZHNhcHAubG9nClN0YW5kYXJkRXJyb3I9YXBwZW5kOi92YXIvbG9nL3Jkc2FwcC5sb2cKCltJbnN0YWxsXQpXYW50ZWRCeT1tdWx0aS11c2VyLnRhcmdldApTRVJWSUNFCgojIFN0YXRpYyBhc3NldHMgZm9yIENsb3VkRnJvbnQgY2FjaGUgdGVzdHMKbWtkaXIgLXAgL29wdC9yZHNhcHAvc3RhdGljCk1FVEFfVE9LRU49JChjdXJsIC1zWCBQVVQgImh0dHA6Ly8xNjkuMjU0LjE2OS4yNTQvbGF0ZXN0L2FwaS90b2tlbiIgXAogIC1IICJYLWF3cy1lYzItbWV0YWRhdGEtdG9rZW4tdHRsLXNlY29uZHM6IDIxNjAwIiB8fCB0cnVlKQpIT1NUX0ZRRE49JChob3N0bmFtZSAtZikKTE9DQUxfSVBWND0kKGN1cmwgLXNIICJYLWF3cy1lYzItbWV0YWRhdGEtdG9rZW46ICRNRVRBX1RPS0VOIiBcCiAgaHR0cDovLzE2OS4yNTQuMTY5LjI1NC9sYXRlc3QvbWV0YS1kYXRhL2xvY2FsLWlwdjQgfHwgdHJ1ZSkKQVo9JChjdXJsIC1zSCAiWC1hd3MtZWMyLW1ldGFkYXRhLXRva2VuOiAkTUVUQV9UT0tFTiIgXAogIGh0dHA6Ly8xNjkuMjU0LjE2OS4yNTQvbGF0ZXN0L21ldGEtZGF0YS9wbGFjZW1lbnQvYXZhaWxhYmlsaXR5LXpvbmUgfHwgdHJ1ZSkKSU5TVEFOQ0VfSUQ9JChjdXJsIC1zSCAiWC1hd3MtZWMyLW1ldGFkYXRhLXRva2VuOiAkTUVUQV9UT0tFTiIgXAogIGh0dHA6Ly8xNjkuMjU0LjE2OS4yNTQvbGF0ZXN0L21ldGEtZGF0YS9pbnN0YW5jZS1pZCB8fCB0cnVlKQoKaWYgWyAhIC1mIC9vcHQvcmRzYXBwL3N0YXRpYy9pbmRleC5odG1sIF07IHRoZW4KY2F0ID4vb3B0L3Jkc2FwcC9zdGF0aWMvaW5kZXguaHRtbCA8PEhUTUwKPCFET0NUWVBFIGh0bWw+CjxodG1sPgo8aGVhZD4KICA8dGl0bGU+Ny4wIEFybWFnZWRkb24gVGhlIEJyb3RoZXIgSG9vZCBvZiBFdmlsIGplck11dGFudHM8L3RpdGxlPgogIDxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEiPgogIDxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0iaHR0cHM6Ly93d3cudzNzY2hvb2xzLmNvbS93M2Nzcy80L3czLmNzcyI+CiAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJodHRwczovL2ZvbnRzLmdvb2dsZWFwaXMuY29tL2Nzcz9mYW1pbHk9UmFsZXdheSI+CiAgPHN0eWxlPgogICAgYm9keSxoMSxoMyB7Zm9udC1mYW1pbHk6ICJSYWxld2F5Iiwgc2Fucy1zZXJpZn0KICAgIGJvZHksIGh0bWwge2hlaWdodDogMTAwJX0KICAgIC5iZ2ltZyB7CiAgICAgIGJhY2tncm91bmQtaW1hZ2U6IHVybCgiaHR0cHM6Ly9hczEuZnRjZG4ubmV0L3YyL2pwZy8wNS84NC84My8yOC8xMDAwX0ZfNTg0ODMyODE5X2l5MVZVTElmY094ZUx1OFZkWEVxMkJTTGRITmRxTndSLmpwZyIpOwogICAgICBtaW4taGVpZ2h0OiAxMDAlOwogICAgICBiYWNrZ3JvdW5kLXBvc2l0aW9uOiBjZW50ZXI7CiAgICAgIGJhY2tncm91bmQtc2l6ZTogY292ZXI7CiAgICB9CiAgICAudzMtZGlzcGxheS1taWRkbGUgewogICAgICBiYWNrZ3JvdW5kLWNvbG9yOiByZ2JhKDAsIDAsIDAsIDAuNDY2KTsKICAgICAgcGFkZGluZzogMjBweDsKICAgICAgYm9yZGVyLXJhZGl1czogMTBweDsKICAgIH0KICAgIC50cmFuc3BhcmVudC1iYWNrZ3JvdW5kIHsKICAgICAgYmFja2dyb3VuZC1jb2xvcjogcmdiYSgwLCAwLCAwLCAwLjU3NSk7CiAgICAgIHBhZGRpbmc6IDIwcHg7CiAgICAgIGJvcmRlci1yYWRpdXM6IDEwcHg7CiAgICB9CiAgICAucm91bmRlZC1pbWFnZSB7CiAgICAgIGJvcmRlci1yYWRpdXM6IDI1cHg7CiAgICB9CiAgPC9zdHlsZT4KPC9oZWFkPgo8Ym9keT4KICA8ZGl2IGNsYXNzPSJiZ2ltZyB3My1kaXNwbGF5LWNvbnRhaW5lciB3My1hbmltYXRlLW9wYWNpdHkgdzMtdGV4dC13aGl0ZSI+CiAgICA8ZGl2IGNsYXNzPSJ3My1kaXNwbGF5LXRvcGxlZnQgdzMtcGFkZGluZy1sYXJnZSB3My14bGFyZ2UiPjwvZGl2PgogICAgPGRpdiBjbGFzcz0idzMtZGlzcGxheS1taWRkbGUgdzMtY2VudGVyIj4KICAgICAgPGlmcmFtZSBzcmM9Imh0dHBzOi8vd3d3LnNodXR0ZXJzdG9jay5jb20vc2h1dHRlcnN0b2NrL3ZpZGVvcy8xMDg0MzkxODIxL3ByZXZpZXcvc3RvY2stZm9vdGFnZS1iYWNrLXZpZXctb2YtYS1naXJsLWluLXN3aW1zdWl0LWJlYXV0aWZ1bC1kYXJrLXNraW5uZWQtbW9kZWwtaW4tYS13aGl0ZS1iaWtpbmkud2VibSIKICAgICAgICAgICAgICB3aWR0aD0iNTAwIgogICAgICAgICAgICAgIGhlaWdodD0iMjcwIgogICAgICAgICAgICAgIHN0eWxlPSJib3JkZXItcmFkaXVzOjEwcHg7IgogICAgICAgICAgICAgIGZyYW1lQm9yZGVyPSIwIiAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgYWxsb3dGdWxsU2NyZWVuPgogICAgICA8L2lmcmFtZT4KICAgICAgPGhyIGNsYXNzPSJ3My1ib3JkZXItZ3JleSIgc3R5bGU9Im1hcmdpbjphdXRvO3dpZHRoOjQwJTttYXJnaW4tdG9wOjE1cHg7Ij4KICAgICAgPGgzIGNsYXNzPSJ3My1sYXJnZSB3My1jZW50ZXIiIHN0eWxlPSJtYXJnaW4tdG9wOjE1cHg7Ij4gICAgICAgIAogICAgICA8L2gzPgogICAgPC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJ3My1kaXNwbGF5LWJvdHRvbWxlZnQgdzMtcGFkZGluZy1zbWFsbCB0cmFuc3BhcmVudC1iYWNrZ3JvdW5kIG91dGxpbmVkLXRleHQiPgogICAgICA8aDE+IlRva3lvIERhdGEgQXV0aG9yaXR5IFJlZ2lvbiAtIERhdGFiYXNlIEh1YiBieSBKb2huIFN3ZWVuZXkiPC9oMT4KICAgICAgPGgzPlRlYW0gR3JvdXAgQ28tTGVhZGVyIGlzIFQuSS5RLlMuIEkgYW0gQmxhY2tuZXRvIG9mIHRoZSBCcm90aGVyaG9vZCBvZiBFdmlsIGplck11dGFudHM8L2gzPgogICAgICA8aDM+PGI+UmVnaW9uOjwvYj4gYXAtbm9ydGhlYXN0LTEgKFRva3lvKSAtIFByaW1hcnkgRGF0YWJhc2UgUmVnaW9uPC9oMz4KICAgICAgPHA+PGI+SW5zdGFuY2UgTmFtZTo8L2I+ICRIT1NUX0ZRRE48L3A+CiAgICAgIDxwPjxiPkluc3RhbmNlIFByaXZhdGUgSVAgQWRkcmVzczo8L2I+ICRMT0NBTF9JUFY0PC9wPgogICAgICA8cD48Yj5BdmFpbGFiaWxpdHkgWm9uZTo8L2I+ICRBWjwvcD4KICAgICAgPHA+PGI+SW5zdGFuY2UgSUQ6PC9iPiAkSU5TVEFOQ0VfSUQ8L3A+CiAgICA8L2Rpdj4KICA8L2Rpdj4KPC9ib2R5Pgo8L2h0bWw+CkhUTUwKICAjIEZvcmNlIGEgc3RhYmxlIG10aW1lIHNvIEVUYWcvTGFzdC1Nb2RpZmllZCBhcmUgY29uc2lzdGVudCBhY3Jvc3MgaW5zdGFuY2VzCiAgIyBOT1RFOiBXZSBmb3JjZSBhIGZpeGVkIG10aW1lIHNvIENsb3VkRnJvbnQgY2FjaGUgdGVzdHMgYXJlIHN0YWJsZSBhY3Jvc3MgaW5zdGFuY2VzLgojIElmIHlvdSB1cGRhdGUgc3RhdGljIGNvbnRlbnQgaW50ZW50aW9uYWxseSwgdXBkYXRlIHRoZSBmaWxlIGNvbnRlbnRzIGFuZCBidW1wIHRoaXMgdGltZXN0YW1wIChvciBpbnZhbGlkYXRlKS4KCiAgdG91Y2ggLXQgMjAyNjAyMDcwMDAwIC9vcHQvcmRzYXBwL3N0YXRpYy9pbmRleC5odG1sCmZpCgoKc3lzdGVtY3RsIGRhZW1vbi1yZWxvYWQKc3lzdGVtY3RsIGVuYWJsZSByZHNhcHAKc3lzdGVtY3RsIHJlc3RhcnQgcmRzYXBwCgplY2hvICI9PT0gdXNlci1kYXRhIGNvbXBsZXRlID09PSIKCgo="
+      + vpc_security_group_ids = [
+          + "sg-0daa3eb9880c0c7e0",
+        ]
+
+      + iam_instance_profile {
+          + name = "taaops-tokyo-ec2-instance-profile"
+        }
+
+      + metadata_options (known after apply)
+
+      + tag_specifications {
+          + resource_type = "instance"
+          + tags          = {
+              + "Name"    = "tokyo-app-instance"
+              + "Purpose" = "Application"
+              + "Region"  = "Tokyo"
+            }
+        }
+    }
+
+  # aws_lb.tokyo_alb will be created
+  + resource "aws_lb" "tokyo_alb" {
+      + arn                                         = (known after apply)
+      + arn_suffix                                  = (known after apply)
+      + desync_mitigation_mode                      = "defensive"
+      + dns_name                                    = (known after apply)
+      + drop_invalid_header_fields                  = false
+      + enable_deletion_protection                  = false
+      + enable_http2                                = true
+      + enable_tls_version_and_cipher_suite_headers = false
+      + enable_waf_fail_open                        = false
+      + enable_xff_client_port                      = false
+      + id                                          = (known after apply)
+      + idle_timeout                                = 60
+      + internal                                    = false
+      + ip_address_type                             = (known after apply)
+      + load_balancer_type                          = "application"
+      + name                                        = "taaops-tokyo-alb"
+      + name_prefix                                 = (known after apply)
+      + preserve_host_header                        = false
+      + security_groups                             = [
+          + "sg-09f2ef083628a84e7",
+        ]
+      + subnets                                     = [
+          + "subnet-012f84861b94b2e18",
+          + "subnet-04eb74f6516f036ec",
+          + "subnet-067c86d0e49e046b8",
+        ]
+      + tags                                        = {
+          + "Name" = "taaops-tokyo-alb"
+        }
+      + tags_all                                    = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-tokyo-alb"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+      + vpc_id                                      = (known after apply)
+      + xff_header_processing_mode                  = "append"
+      + zone_id                                     = (known after apply)
+
+      + access_logs {
+          + bucket  = "taaops-tokyo-alb-logs"
+          + enabled = true
+        }
+
+      + subnet_mapping (known after apply)
+    }
+
+  # aws_lb_listener.tokyo_alb_https_listener will be created
+  + resource "aws_lb_listener" "tokyo_alb_https_listener" {
+      + arn               = (known after apply)
+      + certificate_arn   = "arn:aws:acm:ap-northeast-1:015195098145:certificate/bd05da96-c350-441c-b0a6-eda3667bcf36"
+      + id                = (known after apply)
+      + load_balancer_arn = (known after apply)
+      + port              = 443
+      + protocol          = "HTTPS"
+      + ssl_policy        = "ELBSecurityPolicy-2016-08"
+      + tags_all          = {
+          + "ManagedBy" = "Terraform"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+
+      + default_action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+    }
+
+  # aws_lb_listener.tokyo_alb_listener will be created
+  + resource "aws_lb_listener" "tokyo_alb_listener" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + load_balancer_arn = (known after apply)
+      + port              = 80
+      + protocol          = "HTTP"
+      + ssl_policy        = (known after apply)
+      + tags_all          = {
+          + "ManagedBy" = "Terraform"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+
+      + default_action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+    }
+
+  # aws_lb_target_group.tokyo_tg80 will be created
+  + resource "aws_lb_target_group" "tokyo_tg80" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = (known after apply)
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + ip_address_type                    = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancing_algorithm_type      = (known after apply)
+      + load_balancing_cross_zone_enabled  = (known after apply)
+      + name                               = "taaops-tokyo-tg80"
+      + name_prefix                        = (known after apply)
+      + port                               = 80
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + slow_start                         = 0
+      + tags                               = {
+          + "Name" = "taaops-tokyo-tg80"
+        }
+      + tags_all                           = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-tokyo-tg80"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+      + target_type                        = "instance"
+      + vpc_id                             = "vpc-00ae3886fbdc02172"
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 30
+          + matcher             = "200"
+          + path                = "/"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 5
+          + unhealthy_threshold = 2
+        }
+
+      + stickiness (known after apply)
+
+      + target_failover (known after apply)
+
+      + target_health_state (known after apply)
+    }
+
+  # aws_rds_cluster.taaops_rds_cluster must be replaced
+-/+ resource "aws_rds_cluster" "taaops_rds_cluster" {
+      ~ allocated_storage                   = 1 -> (known after apply)
+      + apply_immediately                   = false
+      ~ arn                                 = "arn:aws:rds:ap-northeast-1:015195098145:cluster:taaops-aurora-cluster-02" -> (known after apply)
+      - backtrack_window                    = 0 -> null
+      + cluster_identifier_prefix           = (known after apply)
+      ~ cluster_members                     = [
+          - "taaops-aurora-0",
+          - "taaops-aurora-1",
+        ] -> (known after apply)
+      ~ cluster_resource_id                 = "cluster-C7P7MKNDZ36BHJ7CLLD4EHS2AM" -> (known after apply)
+      ~ db_cluster_parameter_group_name     = "default.aurora-mysql8.0" -> (known after apply)
+      ~ db_subnet_group_name                = "tokyo-db-private-subnet-group" -> "shinjuku-db-private-subnet-group" # forces replacement
+      + db_system_id                        = (known after apply)
+      - deletion_protection                 = false -> null
+      + enable_global_write_forwarding      = false
+      ~ endpoint                            = "taaops-aurora-cluster-02.cluster-cziy8u28egkv.ap-northeast-1.rds.amazonaws.com" -> (known after apply)
+      ~ engine_version                      = "8.0.mysql_aurora.3.10.3" -> (known after apply)
+      ~ engine_version_actual               = "8.0.mysql_aurora.3.10.3" -> (known after apply)
+      ~ hosted_zone_id                      = "Z24O6O9L7SGTNB" -> (known after apply)
+      - iam_database_authentication_enabled = false -> null
+      ~ iam_roles                           = [] -> (known after apply)
+      ~ id                                  = "taaops-aurora-cluster-02" -> (known after apply)
+      - iops                                = 0 -> null
+      + manage_master_user_password         = true
+      ~ master_user_secret                  = [
+          - {
+              - kms_key_id    = "arn:aws:kms:ap-northeast-1:015195098145:key/ab66dd6d-12d0-41da-8a99-9e9d58dcd4f5"
+              - secret_arn    = "arn:aws:secretsmanager:ap-northeast-1:015195098145:secret:rds!cluster-c74d2e9d-7a06-4166-b194-387e1b9a40a5-dAOuPg"
+              - secret_status = "active"
+            },
+        ] -> (known after apply)
+      + master_user_secret_kms_key_id       = "arn:aws:kms:ap-northeast-1:015195098145:key/ab66dd6d-12d0-41da-8a99-9e9d58dcd4f5"
+      ~ network_type                        = "IPV4" -> (known after apply)
+      ~ port                                = 3306 -> (known after apply)
+      ~ reader_endpoint                     = "taaops-aurora-cluster-02.cluster-ro-cziy8u28egkv.ap-northeast-1.rds.amazonaws.com" -> (known after apply)
+      + storage_type                        = (known after apply)
+      ~ tags                                = {
+            "Compliance"  = "APPI"
+            "Environment" = "production"
+            "Name"        = "tokyo-aurora-cluster"
+            "Purpose"     = "MedicalDataAuthority"
+          + "Region"      = "Tokyo"
+        }
+        # (20 unchanged attributes hidden)
+    }
+
+  # aws_rds_cluster_instance.taaops_rds_cluster_instances[0] must be replaced
+-/+ resource "aws_rds_cluster_instance" "taaops_rds_cluster_instances" {
+      + apply_immediately                     = (known after apply)
+      ~ arn                                   = "arn:aws:rds:ap-northeast-1:015195098145:db:taaops-aurora-0" -> (known after apply)
+      ~ availability_zone                     = "ap-northeast-1d" -> (known after apply)
+      ~ ca_cert_identifier                    = "rds-ca-rsa2048-g1" -> (known after apply)
+      ~ cluster_identifier                    = "taaops-aurora-cluster-02" -> (known after apply) # forces replacement
+      ~ db_parameter_group_name               = "default.aurora-mysql8.0" -> (known after apply)
+      ~ db_subnet_group_name                  = "tokyo-db-private-subnet-group" -> (known after apply)
+      ~ dbi_resource_id                       = "db-HQP2ZEQU7MYBUBFPRPVAVEBL4I" -> (known after apply)
+      ~ endpoint                              = "taaops-aurora-0.cziy8u28egkv.ap-northeast-1.rds.amazonaws.com" -> (known after apply)
+      ~ engine_version                        = "8.0.mysql_aurora.3.10.3" -> (known after apply)
+      ~ engine_version_actual                 = "8.0.mysql_aurora.3.10.3" -> (known after apply)
+      ~ id                                    = "taaops-aurora-0" -> (known after apply)
+      + identifier_prefix                     = (known after apply)
+      ~ kms_key_id                            = "arn:aws:kms:ap-northeast-1:015195098145:key/ab66dd6d-12d0-41da-8a99-9e9d58dcd4f5" -> (known after apply)
+      ~ network_type                          = "IPV4" -> (known after apply)
+      ~ performance_insights_kms_key_id       = "arn:aws:kms:ap-northeast-1:015195098145:key/5ee8f7bb-6ed8-4de0-a3f7-c8c10cc102e4" -> (known after apply)
+      ~ performance_insights_retention_period = 7 -> (known after apply)
+      ~ port                                  = 3306 -> (known after apply)
+      ~ preferred_backup_window               = "03:00-04:00" -> (known after apply)
+      ~ preferred_maintenance_window          = "tue:20:24-tue:20:54" -> (known after apply)
+      ~ storage_encrypted                     = true -> (known after apply)
+        tags                                  = {
+            "Name" = "tokyo-aurora-instance-0"
+            "Type" = "writer"
+        }
+      ~ writer                                = true -> (known after apply)
+        # (12 unchanged attributes hidden)
+    }
+
+  # aws_rds_cluster_instance.taaops_rds_cluster_instances[1] must be replaced
+-/+ resource "aws_rds_cluster_instance" "taaops_rds_cluster_instances" {
+      + apply_immediately                     = (known after apply)
+      ~ arn                                   = "arn:aws:rds:ap-northeast-1:015195098145:db:taaops-aurora-1" -> (known after apply)
+      ~ availability_zone                     = "ap-northeast-1c" -> (known after apply)
+      ~ ca_cert_identifier                    = "rds-ca-rsa2048-g1" -> (known after apply)
+      ~ cluster_identifier                    = "taaops-aurora-cluster-02" -> (known after apply) # forces replacement
+      ~ db_parameter_group_name               = "default.aurora-mysql8.0" -> (known after apply)
+      ~ db_subnet_group_name                  = "tokyo-db-private-subnet-group" -> (known after apply)
+      ~ dbi_resource_id                       = "db-Z7QN52OXCLAMUEAWIXQZGEH35A" -> (known after apply)
+      ~ endpoint                              = "taaops-aurora-1.cziy8u28egkv.ap-northeast-1.rds.amazonaws.com" -> (known after apply)
+      ~ engine_version                        = "8.0.mysql_aurora.3.10.3" -> (known after apply)
+      ~ engine_version_actual                 = "8.0.mysql_aurora.3.10.3" -> (known after apply)
+      ~ id                                    = "taaops-aurora-1" -> (known after apply)
+      + identifier_prefix                     = (known after apply)
+      ~ kms_key_id                            = "arn:aws:kms:ap-northeast-1:015195098145:key/ab66dd6d-12d0-41da-8a99-9e9d58dcd4f5" -> (known after apply)
+      ~ network_type                          = "IPV4" -> (known after apply)
+      ~ performance_insights_kms_key_id       = "arn:aws:kms:ap-northeast-1:015195098145:key/5ee8f7bb-6ed8-4de0-a3f7-c8c10cc102e4" -> (known after apply)
+      ~ performance_insights_retention_period = 7 -> (known after apply)
+      ~ port                                  = 3306 -> (known after apply)
+      ~ preferred_backup_window               = "03:00-04:00" -> (known after apply)
+      ~ preferred_maintenance_window          = "wed:17:07-wed:17:37" -> (known after apply)
+      ~ storage_encrypted                     = true -> (known after apply)
+        tags                                  = {
+            "Name" = "tokyo-aurora-instance-1"
+            "Type" = "reader"
+        }
+      ~ writer                                = false -> (known after apply)
+        # (12 unchanged attributes hidden)
+    }
+
+  # aws_secretsmanager_secret_rotation.tokyo_db_secret_rotation will be created
+  + resource "aws_secretsmanager_secret_rotation" "tokyo_db_secret_rotation" {
+      + id                  = (known after apply)
+      + rotation_enabled    = (known after apply)
+      + rotation_lambda_arn = (known after apply)
+      + secret_id           = "taaops/rds/mysql"
+
+      + rotation_rules {
+          + automatically_after_days = 1
+        }
+    }
+
+  # aws_secretsmanager_secret_version.tokyo_db_secret_initial will be created
+  + resource "aws_secretsmanager_secret_version" "tokyo_db_secret_initial" {
+      + arn            = (known after apply)
+      + id             = (known after apply)
+      + secret_id      = "taaops/rds/mysql"
+      + secret_string  = (sensitive value)
+      + version_id     = (known after apply)
+      + version_stages = (known after apply)
+    }
+
+  # aws_security_group.tokyo_secrets_rotation_lambda_sg will be created
+  + resource "aws_security_group" "tokyo_secrets_rotation_lambda_sg" {
+      + arn                    = (known after apply)
+      + description            = "Security group for Secrets Manager rotation Lambda"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+                # (1 unchanged attribute hidden)
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = (known after apply)
+      + name                   = "tokyo-secrets-rotation-lambda-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "tokyo-secrets-rotation-lambda-sg"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SecretsRotation"
+          + "Region"      = "Tokyo"
+        }
+      + tags_all               = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "tokyo-secrets-rotation-lambda-sg"
+          + "Project"     = "taaops"
+          + "Purpose"     = "SecretsRotation"
+          + "Region"      = "Tokyo"
+        }
+      + vpc_id                 = "vpc-00ae3886fbdc02172"
+    }
+
+  # aws_security_group_rule.allow_secrets_rotation_to_rds will be created
+  + resource "aws_security_group_rule" "allow_secrets_rotation_to_rds" {
+      + description              = "MySQL from Secrets Manager rotation Lambda"
+      + from_port                = 3306
+      + id                       = (known after apply)
+      + protocol                 = "tcp"
+      + security_group_id        = "sg-050088f830e79e26e"
+      + security_group_rule_id   = (known after apply)
+      + self                     = false
+      + source_security_group_id = (known after apply)
+      + to_port                  = 3306
+      + type                     = "ingress"
+    }
+
+  # aws_sns_topic_subscription.tokyo_ir_alarm_subscription will be created
+  + resource "aws_sns_topic_subscription" "tokyo_ir_alarm_subscription" {
+      + arn                             = (known after apply)
+      + confirmation_timeout_in_minutes = 1
+      + confirmation_was_authenticated  = (known after apply)
+      + endpoint                        = (known after apply)
+      + endpoint_auto_confirms          = false
+      + filter_policy_scope             = (known after apply)
+      + id                              = (known after apply)
+      + owner_id                        = (known after apply)
+      + pending_confirmation            = (known after apply)
+      + protocol                        = "lambda"
+      + raw_message_delivery            = false
+      + topic_arn                       = "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-alerts"
+    }
+
+  # aws_sns_topic_subscription.tokyo_ir_lambda_sub will be created
+  + resource "aws_sns_topic_subscription" "tokyo_ir_lambda_sub" {
+      + arn                             = (known after apply)
+      + confirmation_timeout_in_minutes = 1
+      + confirmation_was_authenticated  = (known after apply)
+      + endpoint                        = (known after apply)
+      + endpoint_auto_confirms          = false
+      + filter_policy_scope             = (known after apply)
+      + id                              = (known after apply)
+      + owner_id                        = (known after apply)
+      + pending_confirmation            = (known after apply)
+      + protocol                        = "lambda"
+      + raw_message_delivery            = false
+      + topic_arn                       = "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-trigger-topic"
+    }
+
+  # aws_ssm_parameter.saopaulo_db_endpoint_replica will be created
+  + resource "aws_ssm_parameter" "saopaulo_db_endpoint_replica" {
+      + arn            = (known after apply)
+      + data_type      = (known after apply)
+      + id             = (known after apply)
+      + insecure_value = (known after apply)
+      + key_id         = (known after apply)
+      + name           = "/lab/db/endpoint"
+      + tags           = {
+          + "Name"         = "db-endpoint-replica"
+          + "Region"       = "SaoPaulo"
+          + "SourceRegion" = "Tokyo"
+          + "Type"         = "database"
+        }
+      + tags_all       = {
+          + "ManagedBy"    = "Terraform"
+          + "Name"         = "db-endpoint-replica"
+          + "Purpose"      = "DataConsumer"
+          + "Region"       = "SaoPaulo"
+          + "SourceRegion" = "Tokyo"
+          + "Type"         = "database"
+        }
+      + tier           = (known after apply)
+      + type           = "String"
+      + value          = (sensitive value)
+      + version        = (known after apply)
+    }
+
+  # aws_ssm_parameter.saopaulo_db_reader_endpoint_replica will be created
+  + resource "aws_ssm_parameter" "saopaulo_db_reader_endpoint_replica" {
+      + arn            = (known after apply)
+      + data_type      = (known after apply)
+      + id             = (known after apply)
+      + insecure_value = (known after apply)
+      + key_id         = (known after apply)
+      + name           = "/lab/db/reader_endpoint"
+      + tags           = {
+          + "Name"         = "db-reader-endpoint-replica"
+          + "Region"       = "SaoPaulo"
+          + "SourceRegion" = "Tokyo"
+          + "Type"         = "database"
+        }
+      + tags_all       = {
+          + "ManagedBy"    = "Terraform"
+          + "Name"         = "db-reader-endpoint-replica"
+          + "Purpose"      = "DataConsumer"
+          + "Region"       = "SaoPaulo"
+          + "SourceRegion" = "Tokyo"
+          + "Type"         = "database"
+        }
+      + tier           = (known after apply)
+      + type           = "String"
+      + value          = (sensitive value)
+      + version        = (known after apply)
+    }
+
+  # aws_ssm_parameter.tokyo_db_endpoint will be created
+  + resource "aws_ssm_parameter" "tokyo_db_endpoint" {
+      + arn            = (known after apply)
+      + data_type      = (known after apply)
+      + description    = "Tokyo RDS Aurora cluster endpoint"
+      + id             = (known after apply)
+      + insecure_value = (known after apply)
+      + key_id         = (known after apply)
+      + name           = "/taaops/db/endpoint"
+      + tags           = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-db-endpoint"
+          + "Region"    = "Tokyo"
+        }
+      + tags_all       = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-db-endpoint"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+      + tier           = (known after apply)
+      + type           = "String"
+      + value          = (sensitive value)
+      + version        = (known after apply)
+    }
+
+  # aws_ssm_parameter.tokyo_db_endpoint_update will be created
+  + resource "aws_ssm_parameter" "tokyo_db_endpoint_update" {
+      + arn            = (known after apply)
+      + data_type      = (known after apply)
+      + id             = (known after apply)
+      + insecure_value = (known after apply)
+      + key_id         = (known after apply)
+      + name           = "/lab/db/endpoint"
+      + tags           = {
+          + "Name"   = "db-endpoint-tokyo"
+          + "Region" = "Tokyo"
+          + "Type"   = "database"
+        }
+      + tags_all       = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "db-endpoint-tokyo"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+          + "Type"      = "database"
+        }
+      + tier           = (known after apply)
+      + type           = "String"
+      + value          = (sensitive value)
+      + version        = (known after apply)
+    }
+
+  # aws_ssm_parameter.tokyo_db_name will be created
+  + resource "aws_ssm_parameter" "tokyo_db_name" {
+      + arn            = (known after apply)
+      + data_type      = (known after apply)
+      + description    = "Tokyo RDS Aurora database name"
+      + id             = (known after apply)
+      + insecure_value = (known after apply)
+      + key_id         = (known after apply)
+      + name           = "/taaops/db/name"
+      + tags           = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-db-name"
+          + "Region"    = "Tokyo"
+        }
+      + tags_all       = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-db-name"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+      + tier           = (known after apply)
+      + type           = "String"
+      + value          = (sensitive value)
+      + version        = (known after apply)
+    }
+
+  # aws_ssm_parameter.tokyo_db_port will be created
+  + resource "aws_ssm_parameter" "tokyo_db_port" {
+      + arn            = (known after apply)
+      + data_type      = (known after apply)
+      + description    = "Tokyo RDS Aurora cluster port"
+      + id             = (known after apply)
+      + insecure_value = (known after apply)
+      + key_id         = (known after apply)
+      + name           = "/taaops/db/port"
+      + tags           = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-db-port"
+          + "Region"    = "Tokyo"
+        }
+      + tags_all       = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-db-port"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+      + tier           = (known after apply)
+      + type           = "String"
+      + value          = (sensitive value)
+      + version        = (known after apply)
+    }
+
+  # aws_ssm_parameter.tokyo_db_reader_endpoint will be created
+  + resource "aws_ssm_parameter" "tokyo_db_reader_endpoint" {
+      + arn            = (known after apply)
+      + data_type      = (known after apply)
+      + id             = (known after apply)
+      + insecure_value = (known after apply)
+      + key_id         = (known after apply)
+      + name           = "/lab/db/reader_endpoint"
+      + tags           = {
+          + "Name"   = "db-reader-endpoint"
+          + "Region" = "Tokyo"
+          + "Type"   = "database"
+        }
+      + tags_all       = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "db-reader-endpoint"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+          + "Type"      = "database"
+        }
+      + tier           = (known after apply)
+      + type           = "String"
+      + value          = (sensitive value)
+      + version        = (known after apply)
+    }
+
+  # aws_wafv2_web_acl.taaops_regional_waf_acl will be created
+  + resource "aws_wafv2_web_acl" "taaops_regional_waf_acl" {
+      + arn         = (known after apply)
+      + capacity    = (known after apply)
+      + description = "Regional Web ACL for Tokyo ALB protection"
+      + id          = (known after apply)
+      + lock_token  = (known after apply)
+      + name        = "taaops-tokyo-regional-waf"
+      + scope       = "REGIONAL"
+      + tags        = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-regional-waf"
+          + "Region"      = "Tokyo"
+        }
+      + tags_all    = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "taaops-regional-waf"
+          + "Purpose"     = "DataAuthority"
+          + "Region"      = "Tokyo"
+        }
+
+      + default_action {
+          + allow {
+            }
+        }
+
+      + rule {
+          + name     = "IPBlockRule"
+          + priority = 1
+
+          + action {
+              + block {
+                }
+            }
+
+          + statement {
+              + ip_set_reference_statement {
+                  + arn = "arn:aws:wafv2:ap-northeast-1:015195098145:regional/ipset/taaops-tokyo-ip-block-list/2455cd22-1e8a-4108-ad43-f44ada5bb516"
+                }
+            }
+
+          + visibility_config {
+              + cloudwatch_metrics_enabled = true
+              + metric_name                = "taaops-regional-ip-block"
+              + sampled_requests_enabled   = true
+            }
+        }
+      + rule {
+          + name     = "AWSManagedRulesCommonRuleSet"
+          + priority = 3
+
+          + override_action {
+              + none {}
+            }
+
+          + statement {
+              + managed_rule_group_statement {
+                  + name        = "AWSManagedRulesCommonRuleSet"
+                  + vendor_name = "AWS"
+                    # (1 unchanged attribute hidden)
+                }
+            }
+
+          + visibility_config {
+              + cloudwatch_metrics_enabled = true
+              + metric_name                = "taaops-regional-common"
+              + sampled_requests_enabled   = true
+            }
+        }
+      + rule {
+          + name     = "AWSManagedRulesKnownBadInputs"
+          + priority = 2
+
+          + override_action {
+              + none {}
+            }
+
+          + statement {
+              + managed_rule_group_statement {
+                  + name        = "AWSManagedRulesKnownBadInputsRuleSet"
+                  + vendor_name = "AWS"
+                    # (1 unchanged attribute hidden)
+                }
+            }
+
+          + visibility_config {
+              + cloudwatch_metrics_enabled = true
+              + metric_name                = "taaops-regional-bad-inputs"
+              + sampled_requests_enabled   = true
+            }
+        }
+
+      + visibility_config {
+          + cloudwatch_metrics_enabled = true
+          + metric_name                = "taaops-regional-waf"
+          + sampled_requests_enabled   = true
+        }
+    }
+
+  # aws_wafv2_web_acl_association.taaops_regional_waf_alb_association will be created
+  + resource "aws_wafv2_web_acl_association" "taaops_regional_waf_alb_association" {
+      + id           = (known after apply)
+      + resource_arn = (known after apply)
+      + web_acl_arn  = (known after apply)
+    }
+
+  # aws_wafv2_web_acl_logging_configuration.taaops_regional_waf_logging[0] will be created
+  + resource "aws_wafv2_web_acl_logging_configuration" "taaops_regional_waf_logging" {
+      + id                      = (known after apply)
+      + log_destination_configs = [
+          + "arn:aws:logs:ap-northeast-1:015195098145:log-group:aws-waf-logs-taaops-tokyo-regional-waf",
+        ]
+      + resource_arn            = (known after apply)
+
+      + redacted_fields {
+          + single_header {
+              + name = "authorization"
+            }
+        }
+      + redacted_fields {
+          + single_header {
+              + name = "cookie"
+            }
+        }
+    }
+
+  # module.tokyo_regional_iam.aws_iam_instance_profile.regional_ec2_instance_profile will be created
+  + resource "aws_iam_instance_profile" "regional_ec2_instance_profile" {
+      + arn         = (known after apply)
+      + create_date = (known after apply)
+      + id          = (known after apply)
+      + name        = "taaops-tokyo-ec2-instance-profile"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + role        = "taaops-tokyo-ec2-role"
+      + tags_all    = {
+          + "ManagedBy" = "Terraform"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+      + unique_id   = (known after apply)
+    }
+
+  # module.tokyo_regional_iam.aws_iam_policy.database_access[0] will be created
+  + resource "aws_iam_policy" "database_access" {
+      + arn         = (known after apply)
+      + description = "Database access policy for tokyo"
+      + id          = (known after apply)
+      + name        = "taaops-tokyo-database-access"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "secretsmanager:GetSecretValue",
+                          + "secretsmanager:DescribeSecret",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:secretsmanager:ap-northeast-1:015195098145:secret:taaops/rds/mysql-79lmCr"
+                      + Sid      = "ReadDatabaseSecret"
+                    },
+                  + {
+                      + Action   = [
+                          + "ssm:GetParameters",
+                          + "ssm:GetParameter",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:ssm:*:015195098145:parameter/taaops/database/*"
+                      + Sid      = "ReadDatabaseParameters"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + policy_id   = (known after apply)
+      + tags_all    = {
+          + "ManagedBy" = "Terraform"
+          + "Purpose"   = "DataAuthority"
+          + "Region"    = "Tokyo"
+        }
+    }
+
+  # module.tokyo_regional_iam.aws_iam_role_policy_attachment.ec2_database_access[0] will be created
+  + resource "aws_iam_role_policy_attachment" "ec2_database_access" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + role       = "taaops-tokyo-ec2-role"
+    }
+
+  # module.tokyo_translation.aws_cloudwatch_log_group.translation_lambda_logs will be created
+  + resource "aws_cloudwatch_log_group" "translation_lambda_logs" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + name              = "/aws/lambda/taaops-translate-ap-northeast-1-processor"
+      + name_prefix       = (known after apply)
+      + retention_in_days = 14
+      + skip_destroy      = false
+      + tags              = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-lambda-logs"
+          + "Project"   = "taaops"
+          + "Purpose"   = "TranslationLogging"
+          + "Region"    = "Tokyo"
+        }
+      + tags_all          = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-lambda-logs"
+          + "Project"   = "taaops"
+          + "Purpose"   = "TranslationLogging"
+          + "Region"    = "Tokyo"
+        }
+    }
+
+  # module.tokyo_translation.aws_iam_policy.translation_lambda_policy will be created
+  + resource "aws_iam_policy" "translation_lambda_policy" {
+      + arn         = (known after apply)
+      + description = "Policy for translation Lambda function"
+      + id          = (known after apply)
+      + name        = "taaops-translate-ap-northeast-1-lambda-policy"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "logs:CreateLogGroup",
+                          + "logs:CreateLogStream",
+                          + "logs:PutLogEvents",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:logs:ap-northeast-1:*:*"
+                    },
+                  + {
+                      + Action   = [
+                          + "s3:GetObject",
+                          + "s3:PutObject",
+                          + "s3:DeleteObject",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:s3:::taaops-translate-input/*",
+                          + "arn:aws:s3:::taaops-translate-output/*",
+                          + "arn:aws:s3:::taaops-tokyo-app-logs/*",
+                        ]
+                    },
+                  + {
+                      + Action   = [
+                          + "s3:ListBucket",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:s3:::taaops-translate-input",
+                          + "arn:aws:s3:::taaops-translate-output",
+                          + "arn:aws:s3:::taaops-tokyo-app-logs",
+                        ]
+                    },
+                  + {
+                      + Action   = [
+                          + "translate:TranslateText",
+                          + "translate:TranslateDocument",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + policy_id   = (known after apply)
+      + tags        = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-lambda-policy"
+          + "Project"   = "taaops"
+          + "Purpose"   = "TranslationLambdaPermissions"
+          + "Region"    = "Tokyo"
+        }
+      + tags_all    = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-lambda-policy"
+          + "Project"   = "taaops"
+          + "Purpose"   = "TranslationLambdaPermissions"
+          + "Region"    = "Tokyo"
+        }
+    }
+
+  # module.tokyo_translation.aws_iam_policy.translation_lambda_s3_logs_policy will be created
+  + resource "aws_iam_policy" "translation_lambda_s3_logs_policy" {
+      + arn         = (known after apply)
+      + description = "Policy for translation Lambda function to write to S3 and create logs"
+      + id          = (known after apply)
+      + name        = "taaops-translate-ap-northeast-1-lambda-s3-logs-policy"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "s3:PutObject",
+                          + "s3:GetObject",
+                          + "s3:DeleteObject",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = [
+                          + "arn:aws:s3:::taaops-translate-input/*",
+                          + "arn:aws:s3:::taaops-translate-output/*",
+                          + "arn:aws:s3:::taaops-tokyo-app-logs/*",
+                        ]
+                    },
+                  + {
+                      + Action   = [
+                          + "logs:CreateLogGroup",
+                          + "logs:CreateLogStream",
+                          + "logs:PutLogEvents",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:logs:ap-northeast-1:*:*"
+                    },
+                  + {
+                      + Action   = [
+                          + "translate:TranslateText",
+                          + "translate:TranslateDocument",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                  + {
+                      + Action   = [
+                          + "comprehend:DetectDominantLanguage",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                  + {
+                      + Action   = [
+                          + "kms:GenerateDataKey",
+                          + "kms:Encrypt",
+                          + "kms:Decrypt",
+                          + "kms:DescribeKey",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:kms:ap-northeast-1:015195098145:key/fd93b975-d339-407e-8745-9149a1b2e973"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + policy_id   = (known after apply)
+      + tags        = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-lambda-s3-logs-policy"
+          + "Project"   = "taaops"
+          + "Purpose"   = "TranslationLambdaS3LogsPermissions"
+          + "Region"    = "Tokyo"
+        }
+      + tags_all    = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-lambda-s3-logs-policy"
+          + "Project"   = "taaops"
+          + "Purpose"   = "TranslationLambdaS3LogsPermissions"
+          + "Region"    = "Tokyo"
+        }
+    }
+
+  # module.tokyo_translation.aws_iam_role_policy_attachment.translation_lambda_policy_attachment will be created
+  + resource "aws_iam_role_policy_attachment" "translation_lambda_policy_attachment" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + role       = "taaops-translate-ap-northeast-1-lambda-role"
+    }
+
+  # module.tokyo_translation.aws_lambda_function.translation_lambda will be created
+  + resource "aws_lambda_function" "translation_lambda" {
+      + architectures                  = (known after apply)
+      + arn                            = (known after apply)
+      + filename                       = "../modules/translation/lambda/translation.zip"
+      + function_name                  = "taaops-translate-ap-northeast-1-processor"
+      + handler                        = "handler.lambda_handler"
+      + id                             = (known after apply)
+      + invoke_arn                     = (known after apply)
+      + last_modified                  = (known after apply)
+      + memory_size                    = 128
+      + package_type                   = "Zip"
+      + publish                        = false
+      + qualified_arn                  = (known after apply)
+      + qualified_invoke_arn           = (known after apply)
+      + reserved_concurrent_executions = -1
+      + role                           = "arn:aws:iam::015195098145:role/taaops-translate-ap-northeast-1-lambda-role"
+      + runtime                        = "python3.10"
+      + signing_job_arn                = (known after apply)
+      + signing_profile_version_arn    = (known after apply)
+      + skip_destroy                   = false
+      + source_code_hash               = "FO5u7vKiaAWnRBTg3b7y5FUH9PCozFBxLqN14basQIY="
+      + source_code_size               = (known after apply)
+      + tags                           = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-processor"
+          + "Project"   = "taaops"
+          + "Purpose"   = "IncidentReportTranslation"
+          + "Region"    = "Tokyo"
+        }
+      + tags_all                       = {
+          + "ManagedBy" = "Terraform"
+          + "Name"      = "taaops-translate-ap-northeast-1-processor"
+          + "Project"   = "taaops"
+          + "Purpose"   = "IncidentReportTranslation"
+          + "Region"    = "Tokyo"
+        }
+      + timeout                        = 300
+      + version                        = (known after apply)
+
+      + environment {
+          + variables = {
+              + "INPUT_BUCKET"   = "taaops-translate-input"
+              + "OUTPUT_BUCKET"  = "taaops-translate-output"
+              + "REPORTS_BUCKET" = "taaops-tokyo-app-logs"
+            }
+        }
+
+      + ephemeral_storage (known after apply)
+
+      + tracing_config (known after apply)
+    }
+
+  # module.tokyo_translation.aws_lambda_permission.s3_invoke_translation_lambda will be created
+  + resource "aws_lambda_permission" "s3_invoke_translation_lambda" {
+      + action              = "lambda:InvokeFunction"
+      + function_name       = "taaops-translate-ap-northeast-1-processor"
+      + id                  = (known after apply)
+      + principal           = "s3.amazonaws.com"
+      + source_arn          = "arn:aws:s3:::taaops-translate-input"
+      + statement_id        = "AllowS3Invoke"
+      + statement_id_prefix = (known after apply)
+    }
+
+  # module.tokyo_translation.aws_s3_bucket_notification.translation_trigger will be created
+  + resource "aws_s3_bucket_notification" "translation_trigger" {
+      + bucket      = "taaops-translate-input"
+      + eventbridge = false
+      + id          = (known after apply)
+
+      + lambda_function {
+          + events              = [
+              + "s3:ObjectCreated:*",
+            ]
+          + id                  = (known after apply)
+          + lambda_function_arn = (known after apply)
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+Plan: 53 to add, 0 to change, 4 to destroy.
+
+Changes to Outputs:
+  ~ database_endpoint                = "taaops-aurora-cluster-02.cluster-cziy8u28egkv.ap-northeast-1.rds.amazonaws.com" -> (known after apply)
+  ~ database_reader_endpoint         = "taaops-aurora-cluster-02.cluster-ro-cziy8u28egkv.ap-northeast-1.rds.amazonaws.com" -> (known after apply)
+  + ir_lambda_function_arn           = (known after apply)
+  + ir_lambda_function_name          = "taaops-tokyo-ir-reporter"
+  + regional_waf_arn                 = (known after apply)
+  + tokyo_alb_dns_name               = (known after apply)
+  + tokyo_alb_https_listener_arn     = (known after apply)
+  + tokyo_alb_tg_arn                 = (known after apply)
+  + tokyo_alb_zone_id                = (known after apply)
+  + translation_lambda_function_arn  = (known after apply)
+  + translation_lambda_function_name = "taaops-translate-ap-northeast-1-processor"
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.
+Releasing state lock. This may take a few moments...

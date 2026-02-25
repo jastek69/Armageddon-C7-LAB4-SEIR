@@ -5,13 +5,23 @@
 # DATABASE SUBNET GROUP
 ################################################################################
 
+locals {
+  rds_kms_key_arn       = var.rds_kms_key_arn != "" ? var.rds_kms_key_arn : aws_kms_key.taaops_kms_key01.arn
+  rds_security_group_id = var.rds_security_group_id != "" ? var.rds_security_group_id : aws_security_group.tokyo_rds_sg.id
+}
+
 resource "aws_db_subnet_group" "tokyo_db_subnet_group" {
-  name = "tokyo-db-private-subnet-group"
+  name = "shinjuku-db-private-subnet-group"
   subnet_ids = [
     aws_subnet.tokyo_subnet_private_a.id,
     aws_subnet.tokyo_subnet_private_b.id,
     aws_subnet.tokyo_subnet_private_c.id
   ]
+
+  # Migration safety: create the new subnet group before removing the old one.
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = {
     Name    = "tokyo-db-subnet-group"
@@ -34,13 +44,13 @@ resource "aws_rds_cluster" "taaops_rds_cluster" {
 
   # Use Secrets Manager for password management - references existing secret in 16-secrets.tf
   manage_master_user_password   = true
-  master_user_secret_kms_key_id = aws_kms_key.taaops_kms_key01.arn
+  master_user_secret_kms_key_id = local.rds_kms_key_arn
 
   storage_encrypted               = true
-  kms_key_id                      = aws_kms_key.taaops_kms_key01.arn
+  kms_key_id                      = local.rds_kms_key_arn
   enabled_cloudwatch_logs_exports = ["audit", "error", "general", "slowquery"]
   skip_final_snapshot             = true
-  vpc_security_group_ids          = [aws_security_group.tokyo_rds_sg.id]
+  vpc_security_group_ids          = [local.rds_security_group_id]
   backup_retention_period         = 7
   preferred_backup_window         = "03:00-04:00"
   preferred_maintenance_window    = "sun:04:00-sun:05:00"
@@ -159,7 +169,8 @@ data "aws_iam_policy_document" "global_database_access" {
       "secretsmanager:DescribeSecret"
     ]
     resources = [
-      aws_secretsmanager_secret.db_secret.arn
+      aws_secretsmanager_secret.db_secret.arn,
+      aws_rds_cluster.taaops_rds_cluster.master_user_secret[0].secret_arn
     ]
   }
 
@@ -173,7 +184,9 @@ data "aws_iam_policy_document" "global_database_access" {
     ]
     resources = [
       "arn:aws:ssm:ap-northeast-1:${data.aws_caller_identity.taaops_self01.account_id}:parameter/taaops/database/*",
-      "arn:aws:ssm:sa-east-1:${data.aws_caller_identity.taaops_self01.account_id}:parameter/taaops/database/*"
+      "arn:aws:ssm:sa-east-1:${data.aws_caller_identity.taaops_self01.account_id}:parameter/taaops/database/*",
+      "arn:aws:ssm:ap-northeast-1:${data.aws_caller_identity.taaops_self01.account_id}:parameter/taaops/db/*",
+      "arn:aws:ssm:sa-east-1:${data.aws_caller_identity.taaops_self01.account_id}:parameter/taaops/db/*"
     ]
   }
 
@@ -185,7 +198,7 @@ data "aws_iam_policy_document" "global_database_access" {
       "kms:GenerateDataKey"
     ]
     resources = [
-      aws_kms_key.taaops_kms_key01.arn
+      local.rds_kms_key_arn
     ]
     condition {
       test     = "StringEquals"
@@ -281,6 +294,19 @@ resource "aws_ssm_parameter" "tokyo_db_name" {
   }
 }
 
+resource "aws_ssm_parameter" "tokyo_db_secret_arn" {
+  name        = "/taaops/db/secret_arn"
+  description = "Tokyo RDS managed secret ARN"
+  type        = "String"
+  value       = aws_rds_cluster.taaops_rds_cluster.master_user_secret[0].secret_arn
+  overwrite   = true
+  tags = {
+    Name      = "taaops-db-secret-arn"
+    Region    = "Tokyo"
+    ManagedBy = "Terraform"
+  }
+}
+
 # Update existing SSM parameters with Tokyo database values
 resource "aws_ssm_parameter" "tokyo_db_endpoint_update" {
   name  = "/lab/db/endpoint"
@@ -336,6 +362,21 @@ resource "aws_ssm_parameter" "saopaulo_db_reader_endpoint_replica" {
 
   tags = {
     Name         = "db-reader-endpoint-replica"
+    Type         = "database"
+    SourceRegion = "Tokyo"
+    Region       = "SaoPaulo"
+  }
+}
+
+resource "aws_ssm_parameter" "saopaulo_db_secret_arn_replica" {
+  provider = aws.saopaulo
+  name     = "/taaops/db/secret_arn"
+  type     = "String"
+  value    = aws_rds_cluster.taaops_rds_cluster.master_user_secret[0].secret_arn
+  overwrite = true
+
+  tags = {
+    Name         = "db-secret-arn-replica"
     Type         = "database"
     SourceRegion = "Tokyo"
     Region       = "SaoPaulo"

@@ -23,7 +23,7 @@ lab-3/
 │   └── backend.tf            # Remote state configuration
 │
 ├── terraform_startup.sh      # Apply wrapper (Tokyo -> global -> saopaulo)
-├── terraform_destroy.sh      # Destroy wrapper (global -> Tokyo -> saopaulo)
+├── terraform_destroy.sh      # Destroy wrapper (global -> newyork_gcp -> saopaulo -> Tokyo)
 └── DEPLOYMENT_GUIDE.md       # This file
 ```
 
@@ -76,6 +76,19 @@ After backend changes:
 (cd saopaulo && terraform init -reconfigure)
 ```
 
+Remote State Key Checklist (update these together for new deployments)
+| Stack / Reference | File and line range | Setting |
+| --- | --- | --- |
+| Tokyo backend key | [Tokyo/backend.tf](Tokyo/backend.tf#L6-L12) | `key` |
+| Global backend key | [global/backend.tf](global/backend.tf#L3-L9) | `key` |
+| Sao Paulo backend key | [saopaulo/backend.tf](saopaulo/backend.tf#L6-L12) | `key` |
+| New York GCP backend key | [newyork_gcp/2-backend.tf](newyork_gcp/2-backend.tf#L2-L8) | `key` |
+| Global -> Tokyo remote state | [global/terraform.tfvars](global/terraform.tfvars#L6-L8) | `tokyo_state_key` |
+| Sao Paulo -> Tokyo remote state | [saopaulo/terraform.tfvars](saopaulo/terraform.tfvars#L3-L5) | `tokyo_state_key` |
+| New York GCP -> Tokyo remote state | [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars#L22-L24) | `tokyo_state_key` |
+| Tokyo -> GCP remote state | [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars#L63-L66) | `gcp_state_key` |
+| Tokyo -> Sao Paulo remote state | [Tokyo/main.tf](Tokyo/main.tf#L46-L55) | `key` |
+
 ### **Step 3: Deploy with Wrapper Script (Recommended)**
 
 Run from LAB3 root:
@@ -84,9 +97,15 @@ Run from LAB3 root:
 bash ./terraform_startup.sh
 ```
 
+Windows Line Endings Fix (if scripts fail with /usr/bin/env)
+```bash
+sed -i 's/\r$//' terraform_startup.sh terraform_apply.sh
+```
+
 Notes:
 - This repo's apply wrapper is `terraform_startup.sh` (same role as `terraform_apply.sh`).
 - Deployment order is `Tokyo -> global -> saopaulo`.
+- `force_destroy` in [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars) is currently `true` to allow S3 cleanup during destroy; set to `false` for production.
 
 ### **Step 4: Manual Deployment (Alternative)**
 
@@ -106,8 +125,9 @@ bash ./terraform_destroy.sh
 
 Script destroy order is remote-state-safe:
 1. `global`
-2. `Tokyo`
+2. `newyork_gcp`
 3. `saopaulo`
+4. `Tokyo`
 
 Manual alternative:
 
@@ -116,6 +136,23 @@ Manual alternative:
 (cd Tokyo && terraform destroy)
 (cd saopaulo && terraform destroy)
 ```
+
+## ✅ **Reset Checklist (clean apply/destroy)**
+
+- Confirm what must be retained (Route53 public zone, ACM certs) before any destroy.
+- Verify backend keys and remote state keys match the current deployment in the Remote State Key Checklist above; run `terraform init -reconfigure` in each stack after changes.
+- For a full destroy, set `enable_aws_gcp_tgw_vpn = false` in [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars) if Tokyo state is missing, and set VPN lifecycle `prevent_destroy = false` in [newyork_gcp/5-gcp-vpn-connections.tf](newyork_gcp/5-gcp-vpn-connections.tf) during teardown.
+- If you need S3 buckets to delete cleanly, keep `force_destroy = true` in [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars) during destroy, then restore to `false` after.
+- Run `./terraform_destroy.sh` from repo root and confirm all four stacks complete; if any stack fails due to missing state, remove remaining resources manually before a clean apply.
+- For a clean apply from empty state, run `./terraform_startup.sh` from repo root (GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo).
+
+## ✅ **Partial Reset Scenarios**
+
+- **Global only (CloudFront/WAF/Route53):** keep Tokyo and Sao Paulo intact; run `(cd global && terraform destroy)` and re-apply when ready. Make sure `tokyo_state_key` in [global/terraform.tfvars](global/terraform.tfvars) still points at the active Tokyo state.
+- **Sao Paulo only (compute spoke):** keep Tokyo intact; destroy and re-apply only Sao Paulo. Validate [saopaulo/terraform.tfvars](saopaulo/terraform.tfvars) `tokyo_state_key` and TGW peering outputs before apply.
+- **Tokyo only (data authority):** avoid if Sao Paulo or global still depend on Tokyo outputs; if required, destroy Sao Paulo and global first, then Tokyo, then rebuild Tokyo before re-applying dependents.
+- **New York GCP only:** keep AWS stacks intact; run `(cd newyork_gcp && terraform destroy)` and re-apply. If Tokyo state is missing, set `enable_aws_gcp_tgw_vpn = false` in [newyork_gcp/terraform.tfvars](newyork_gcp/terraform.tfvars) to skip VPN resources.
+- **Remote state refresh only:** change keys or buckets, then run `terraform init -reconfigure` in each affected stack without destroy/apply.
 
 ## 🔗 **Inter-Region Dependencies**
 
@@ -130,6 +167,43 @@ Manual alternative:
 - Creates TGW peering connection to Tokyo
 - Routes database traffic through TGW
 - Configures security groups for cross-region access
+
+## 🔌 **VPC Endpoints**
+
+- **Tokyo:** Interface endpoints for SSM, EC2 Messages, SSM Messages, and CloudWatch Logs; S3 uses a gateway endpoint on the private route table.
+- **Sao Paulo:** Same interface endpoints plus an S3 gateway endpoint on the private route table.
+- Endpoint IDs and DNS names are exposed in Tokyo and Sao Paulo outputs.
+
+## 🧪 **Origin Debug Note**
+
+- The Tokyo ALB security group allows only the CloudFront origin-facing prefix list. Direct curls to the ALB from your laptop will fail.
+- If you see 500s during init, verify CloudFront can reach `origin.jastek.click`, then check Tokyo instance logs via SSM.
+
+### **Origin Debug Commands**
+```bash
+# CloudFront response headers
+curl -I https://jastek.click
+curl -I https://app.jastek.click
+
+# CloudFront origin domain
+aws cloudfront get-distribution --id <DISTRIBUTION_ID> \
+  --query "Distribution.DistributionConfig.Origins.Items[0].DomainName" --output text
+
+# Route53 origin record
+aws route53 list-hosted-zones-by-name --dns-name jastek.click --query "HostedZones[0].Id" --output text
+aws route53 list-resource-record-sets --hosted-zone-id <ZONE_ID> \
+  --query "ResourceRecordSets[?Name=='origin.jastek.click.']" --output json
+
+# Tokyo instance app check via SSM
+aws ssm send-command --region ap-northeast-1 \
+  --document-name "AWS-RunShellScript" \
+  --instance-ids <TOKYO_INSTANCE_IDS> \
+  --parameters 'commands=["curl -I http://localhost","curl -I http://localhost:5000","sudo tail -n 60 /var/log/cloud-init-output.log"]'
+
+# Tokyo ALB SG (CloudFront prefix list)
+aws ec2 describe-managed-prefix-lists --region ap-northeast-1 \
+  --query "PrefixLists[?PrefixListName=='com.amazonaws.global.cloudfront.origin-facing'].[PrefixListId,PrefixListName]" --output table
+```
 
 ## 🛡️ **Security Architecture**
 
@@ -182,8 +256,9 @@ bash ./terraform_destroy.sh
 
 # Manual fallback (same order as script)
 (cd global && terraform destroy)
-(cd Tokyo && terraform destroy)
+(cd newyork_gcp && terraform destroy)
 (cd saopaulo && terraform destroy)
+(cd Tokyo && terraform destroy)
 ```
 
 ## 🔒 **DynamoDB State Locking Deep Dive**
