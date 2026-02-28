@@ -1,5 +1,5 @@
-# Tokyo Region - Lab 2 + TGW Hub Configuration
-# This contains the complete Lab 2 infrastructure plus Transit Gateway hub for cross-region connectivity
+# Tokyo Region - Lab 4 + TGW Hub Configuration
+# This contains the complete Lab 4 infrastructure plus Transit Gateway hub for cross-region connectivity
 
 terraform {
   required_providers {
