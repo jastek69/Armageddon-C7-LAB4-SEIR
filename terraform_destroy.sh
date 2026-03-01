@@ -19,8 +19,9 @@ run_destroy() {
 }
 
 echo "WARNING: This will destroy LAB4 infrastructure in Global, New York GCP, Sao Paulo, and Tokyo stacks."
-read -r -p "Type 'yes' to continue: " confirm
-if [[ "$confirm" != "yes" ]]; then
+echo "REMINDER: S3 buckets use force_destroy=true in this lab. All objects and versions will be deleted."
+read -r -p "Type 'DESTROY' to continue: " confirm
+if [[ "$confirm" != "DESTROY" ]]; then
   echo "Destroy cancelled."
   exit 0
 fi

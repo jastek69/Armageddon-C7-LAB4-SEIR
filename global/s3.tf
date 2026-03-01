@@ -1,6 +1,7 @@
 # CloudFront standard logs bucket (ACLs must be enabled for legacy logging).
 resource "aws_s3_bucket" "cloudfront_logs" {
   bucket = "taaops-cloudfront-logs-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
 }
 
 data "aws_canonical_user_id" "current" {}

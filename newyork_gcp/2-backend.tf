@@ -4,7 +4,8 @@ terraform {
     key            = "newyork_gcp/ny022126terraform.tfstate"
     region         = "ap-northeast-1"
     encrypt        = true
-    use_lockfile   = true
+    dynamodb_table = "taaops-terraform-state-lock"
+    # use_lockfile = true # Use either this or dynamodb_table, not both.
   }
 
   required_providers {

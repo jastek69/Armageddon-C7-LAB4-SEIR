@@ -102,10 +102,26 @@ São Paulo App Servers → São Paulo TGW → TGW Peering → Tokyo TGW → Toky
 4. Update backend configurations with actual bucket names
 
 ### State Locking Options
-Default backend mode in this repo uses S3 lock files (`use_lockfile = true`).
+Summary:
+The lock table must be in the same region as the S3 backend bucket.
+Note: the New York backend uses ap-northeast-1, so it should point at the Tokyo-region lock table.
 
-Optional activation (team/CI): enable DynamoDB locking.
-1. Create the lock table in both regions:
+***`lockfile` method***: Legacy option using S3 lock files (`use_lockfile = true`).
+
+***`DynamoDB` method***: Recommended for team/CI. Backends now include `dynamodb_table` and the lockfile option is commented.
+Terraform S3 backend + DynamoDB locking:
+https://developer.hashicorp.com/terraform/language/settings/backends/s3
+
+AWS DynamoDB CreateTable API (official AWS docs):
+https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html
+
+To enable DynamoDB locking everywhere:
+1. Create the lock table in each backend region (TF is already present for Tokyo and Sao Paulo).
+2. Ensure `dynamodb_table = "taaops-terraform-state-lock"` is set in each backend (Tokyo, global, saopaulo, newyork_gcp).
+3. Keep `use_lockfile` commented (use only one locking method).
+4. Run `terraform init -reconfigure` in each stack.
+
+Create the lock table in all regions:
 ```bash
 aws dynamodb create-table \
   --table-name taaops-terraform-state-lock \
@@ -121,7 +137,7 @@ aws dynamodb create-table \
   --billing-mode PAY_PER_REQUEST \
   --region sa-east-1
 ```
-2. Add this to each backend: `Tokyo/backend.tf`, `global/backend.tf`, `saopaulo/backend.tf`
+2. Add this to each backend: `Tokyo/backend.tf`, `global/backend.tf`, `saopaulo/backend.tf`, `newyork_gcp/2-backend.tf`
 ```hcl
 dynamodb_table = "taaops-terraform-state-lock"
 ```
@@ -130,12 +146,72 @@ dynamodb_table = "taaops-terraform-state-lock"
 (cd Tokyo && terraform init -reconfigure)
 (cd global && terraform init -reconfigure)
 (cd saopaulo && terraform init -reconfigure)
+(cd newyork_gcp && terraform init -reconfigure)
 ```
 
 Note: Use one locking method at a time (`use_lockfile` or `dynamodb_table`).
 
+### Lock Recovery (DynamoDB)
+If a Terraform run is interrupted, the lock can remain in DynamoDB and block future runs.
+
+1. Re-run the command to see the lock ID.
+2. From the stack directory, force-unlock using that ID:
+```bash
+terraform force-unlock <LOCK_ID>
+```
+3. Re-run `terraform plan` or `terraform apply`.
+
+Avoid `-lock=false` unless you are certain no other runs are active.
+
+### Password/Secret Handling on Reruns
+The database password is managed through Secrets Manager. On reruns:
+
+- **Reset**: Update the secret to the desired value before re-applying so the app and DB stay aligned.
+- **Restore**: If a previous secret is still valid, keep it and re-run Terraform; resources will reference the existing secret.
+- **Recreate**: If you want a fresh secret, delete the secret in AWS first, then re-run Terraform to recreate it.
+
+Tip: When using rotation, confirm the secret value after re-apply to ensure the app uses the current credential.
+
+CLI examples (restore + import existing secret):
+```bash
+# 1) Cancel deletion (only needed if the secret is scheduled for deletion)
+aws secretsmanager restore-secret --secret-id "taaops/rds/mysql" --region ap-northeast-1
+
+# 2) Import into the Tokyo stack state
+cd Tokyo
+terraform import aws_secretsmanager_secret.db_secret "taaops/rds/mysql"
+
+# 3) Re-apply
+terraform apply
+```
+
+CLI example (reset secret value):
+```bash
+aws secretsmanager put-secret-value \
+  --secret-id "taaops/rds/mysql" \
+  --region ap-northeast-1 \
+  --secret-string '{"username":"admin","password":"NEW_PASSWORD","engine":"mysql","port":3306,"host":"CLUSTER_ENDPOINT","dbname":"taaopsdb"}'
+```
+
+CLI example (reset secret value using SSM parameters):
+```bash
+DB_ENDPOINT="$(aws ssm get-parameter --name /taaops/db/endpoint --region ap-northeast-1 --query 'Parameter.Value' --output text)"
+DB_NAME="$(aws ssm get-parameter --name /taaops/db/name --region ap-northeast-1 --query 'Parameter.Value' --output text)"
+
+# Port should be 3306
+DB_PORT="$(aws ssm get-parameter --name /taaops/db/port --region ap-northeast-1 --query 'Parameter.Value' --output text)"
+DB_USER="admin" # From Tokyo/terraform.tfvars (db_username)
+
+aws secretsmanager put-secret-value \
+  --secret-id "taaops/rds/mysql" \
+  --region ap-northeast-1 \
+  --secret-string "{\"username\":\"${DB_USER}\",\"password\":\"NEW_PASSWORD\",\"engine\":\"mysql\",\"port\":${DB_PORT},\"host\":\"${DB_ENDPOINT}\",\"dbname\":\"${DB_NAME}\"}"
+
+echo "Using DB port: ${DB_PORT} (expected 3306)"
+```
+
 ### Deployment (Recommended)
-Run from `LAB3` root:
+Run from `<project>` root:
 ```bash
 bash ./terraform_startup.sh
 ```
@@ -146,32 +222,38 @@ sed -i 's/\r$//' terraform_startup.sh terraform_apply.sh
 ```
 
 Deployment order in script:
-1. `Tokyo`
-2. `global`
-3. `saopaulo`
+1. `newyork_gcp` (GCP seed targets)
+2. `Tokyo`
+3. `global`
+4. `newyork_gcp` (full)
+5. `saopaulo`
 
 ### Destroy (Recommended)
-Run from `LAB3` root:
+Run from `<project>` root:
 ```bash
 bash ./terraform_destroy.sh
 ```
 
 Destroy order in script:
 1. `global`
-2. `Tokyo`
+2. `newyork_gcp`
 3. `saopaulo`
+4. `Tokyo`
 
 ### Manual Alternative
 ```bash
 # Apply
+(cd newyork_gcp && terraform init -upgrade && terraform plan && terraform apply -target=google_compute_network.nihonmachi-vpc -target=google_compute_ha_vpn_gateway.gcp-to-aws-vpn-gw)
 (cd Tokyo && terraform init -upgrade && terraform plan && terraform apply)
 (cd global && terraform init -upgrade && terraform plan && terraform apply)
+(cd newyork_gcp && terraform init -upgrade && terraform plan && terraform apply)
 (cd saopaulo && terraform init -upgrade && terraform plan && terraform apply)
 
 # Destroy
 (cd global && terraform destroy)
-(cd Tokyo && terraform destroy)
+(cd newyork_gcp && terraform destroy)
 (cd saopaulo && terraform destroy)
+(cd Tokyo && terraform destroy)
 ```
 
 ### Verify Connectivity

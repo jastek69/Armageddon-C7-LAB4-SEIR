@@ -34,6 +34,7 @@ resource "aws_s3_bucket" "taaops_cf_waf_firehose_dest" {
   provider = aws.us-east-1
 
   bucket = "${var.project_name}-cf-waf-firehose-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_public_access_block" "taaops_cf_waf_firehose_pab" {

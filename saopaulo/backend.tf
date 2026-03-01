@@ -7,7 +7,8 @@ terraform {
     key          = "saopaulo/sp022126terraform.tfstate"
     region       = "sa-east-1"
     encrypt      = true
-    use_lockfile = true
+    dynamodb_table = "taaops-terraform-state-lock"
+    # use_lockfile = true # Use either this or dynamodb_table, not both.
   }
 }
 
