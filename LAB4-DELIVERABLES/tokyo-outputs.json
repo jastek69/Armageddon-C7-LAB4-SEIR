@@ -1,0 +1,290 @@
+{
+  "account_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "015195098145"
+  },
+  "cloudwatch_log_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/taaops/application"
+  },
+  "database_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-aurora-cluster-02.cluster-cziy8u28egkv.ap-northeast-1.rds.amazonaws.com"
+  },
+  "database_reader_endpoint": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-aurora-cluster-02.cluster-ro-cziy8u28egkv.ap-northeast-1.rds.amazonaws.com"
+  },
+  "database_secret_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:secretsmanager:ap-northeast-1:015195098145:secret:taaops/rds/mysql-rBOOrC"
+  },
+  "database_security_group_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sg-051ba7efbacbb7836"
+  },
+  "domain_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "jastek.click"
+  },
+  "gcp_tgw_vpn1_tunnel1_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "52.68.137.129"
+  },
+  "gcp_tgw_vpn1_tunnel2_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "52.192.136.151"
+  },
+  "gcp_tgw_vpn2_tunnel1_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "13.112.99.247"
+  },
+  "gcp_tgw_vpn2_tunnel2_address": {
+    "sensitive": false,
+    "type": "string",
+    "value": "13.113.136.95"
+  },
+  "incident_reports_bucket_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:s3:::taaops-tokyo-incident-reports-015195098145"
+  },
+  "incident_reports_bucket_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-tokyo-incident-reports-015195098145"
+  },
+  "ir_lambda_function_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:lambda:ap-northeast-1:015195098145:function:taaops-tokyo-ir-reporter"
+  },
+  "ir_lambda_function_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-tokyo-ir-reporter"
+  },
+  "ir_reports_topic_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-reports-topic"
+  },
+  "ir_trigger_topic_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:sns:ap-northeast-1:015195098145:taaops-tokyo-ir-trigger-topic"
+  },
+  "kms_key_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:kms:ap-northeast-1:015195098145:key/09dcb05b-c850-4c2b-9e5f-e7af9758d76e"
+  },
+  "regional_waf_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:wafv2:ap-northeast-1:015195098145:regional/webacl/taaops-tokyo-regional-waf/c7bd6ce8-86b6-42ce-bb4b-bafab9689c10"
+  },
+  "route53_zone_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "Z0226086O3FCYG2A1C50"
+  },
+  "ssm_automation_document_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-tokyo-incident-report"
+  },
+  "tokyo_alb_dns_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-tokyo-alb-1777359769.ap-northeast-1.elb.amazonaws.com"
+  },
+  "tokyo_alb_https_listener_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:elasticloadbalancing:ap-northeast-1:015195098145:listener/app/taaops-tokyo-alb/10a7ba674ff1695d/1fbfdd752e33e9f7"
+  },
+  "tokyo_alb_sg_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sg-09b28c4dd70fda073"
+  },
+  "tokyo_alb_tg_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:elasticloadbalancing:ap-northeast-1:015195098145:targetgroup/taaops-tokyo-tg80/58f04af70e18f28d"
+  },
+  "tokyo_alb_zone_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "Z14GRHDCWA56QT"
+  },
+  "tokyo_region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "ap-northeast-1"
+  },
+  "tokyo_transit_gateway_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:ec2:ap-northeast-1:015195098145:transit-gateway/tgw-08adf58f2c2ddfad1"
+  },
+  "tokyo_transit_gateway_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "tgw-08adf58f2c2ddfad1"
+  },
+  "tokyo_vpc_cidr": {
+    "sensitive": false,
+    "type": "string",
+    "value": "10.233.0.0/16"
+  },
+  "tokyo_vpc_endpoint_dns": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "ec2messages": [
+          "tuple",
+          [
+            "string",
+            "string",
+            "string",
+            "string",
+            "string"
+          ]
+        ],
+        "logs": [
+          "tuple",
+          [
+            "string",
+            "string",
+            "string",
+            "string",
+            "string",
+            "string",
+            "string",
+            "string"
+          ]
+        ],
+        "ssm": [
+          "tuple",
+          [
+            "string",
+            "string",
+            "string",
+            "string",
+            "string",
+            "string"
+          ]
+        ],
+        "ssmmessages": [
+          "tuple",
+          [
+            "string",
+            "string",
+            "string",
+            "string",
+            "string",
+            "string"
+          ]
+        ]
+      }
+    ],
+    "value": {
+      "ec2messages": [
+        "vpce-0ed21c99040ee9dec-k7xy557e.ec2messages.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0ed21c99040ee9dec-k7xy557e-ap-northeast-1a.ec2messages.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0ed21c99040ee9dec-k7xy557e-ap-northeast-1c.ec2messages.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0ed21c99040ee9dec-k7xy557e-ap-northeast-1d.ec2messages.ap-northeast-1.vpce.amazonaws.com",
+        "ec2messages.ap-northeast-1.amazonaws.com"
+      ],
+      "logs": [
+        "vpce-0d9ef64eedad2867e-j5gno58d.logs.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0d9ef64eedad2867e-j5gno58d-ap-northeast-1a.logs.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0d9ef64eedad2867e-j5gno58d-ap-northeast-1d.logs.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0d9ef64eedad2867e-j5gno58d-ap-northeast-1c.logs.ap-northeast-1.vpce.amazonaws.com",
+        "logs.ap-northeast-1.amazonaws.com",
+        "logs.ap-northeast-1.api.aws",
+        "streaming-logs.ap-northeast-1.amazonaws.com",
+        "streaming-logs.ap-northeast-1.api.aws"
+      ],
+      "ssm": [
+        "vpce-078531bb0237e0946-wlirjn6w.ssm.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-078531bb0237e0946-wlirjn6w-ap-northeast-1c.ssm.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-078531bb0237e0946-wlirjn6w-ap-northeast-1d.ssm.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-078531bb0237e0946-wlirjn6w-ap-northeast-1a.ssm.ap-northeast-1.vpce.amazonaws.com",
+        "ssm.ap-northeast-1.amazonaws.com",
+        "ssm.ap-northeast-1.api.aws"
+      ],
+      "ssmmessages": [
+        "vpce-0c178e51882f2042a-och7ye54.ssmmessages.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0c178e51882f2042a-och7ye54-ap-northeast-1d.ssmmessages.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0c178e51882f2042a-och7ye54-ap-northeast-1a.ssmmessages.ap-northeast-1.vpce.amazonaws.com",
+        "vpce-0c178e51882f2042a-och7ye54-ap-northeast-1c.ssmmessages.ap-northeast-1.vpce.amazonaws.com",
+        "ssmmessages.ap-northeast-1.amazonaws.com",
+        "ssmmessages.ap-northeast-1.api.aws"
+      ]
+    }
+  },
+  "tokyo_vpc_endpoint_ids": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "ec2messages": "string",
+        "logs": "string",
+        "s3_gateway": "string",
+        "ssm": "string",
+        "ssmmessages": "string"
+      }
+    ],
+    "value": {
+      "ec2messages": "vpce-0ed21c99040ee9dec",
+      "logs": "vpce-0d9ef64eedad2867e",
+      "s3_gateway": "vpce-0c14cb82d5d70417b",
+      "ssm": "vpce-078531bb0237e0946",
+      "ssmmessages": "vpce-0c178e51882f2042a"
+    }
+  },
+  "tokyo_vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-07b3d0d7be447a098"
+  },
+  "translation_input_bucket_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:s3:::taaops-translate-input"
+  },
+  "translation_input_bucket_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-translate-input"
+  },
+  "translation_lambda_function_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:lambda:ap-northeast-1:015195098145:function:taaops-translate-ap-northeast-1-processor"
+  },
+  "translation_lambda_function_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-translate-ap-northeast-1-processor"
+  },
+  "translation_output_bucket_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-translate-output"
+  }
+}

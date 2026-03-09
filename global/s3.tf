@@ -6,6 +6,9 @@ resource "aws_s3_bucket" "cloudfront_logs" {
 
 data "aws_canonical_user_id" "current" {}
 
+# CloudFront log delivery service canonical user ID (required for FULL_CONTROL grant on the logs bucket).
+data "aws_cloudfront_log_delivery_canonical_user_id" "cloudfront" {}
+
 resource "aws_s3_bucket_public_access_block" "cloudfront_logs" {
   bucket                  = aws_s3_bucket.cloudfront_logs.id
   block_public_acls       = true
@@ -67,6 +70,16 @@ resource "aws_s3_bucket_acl" "cloudfront_logs" {
       grantee {
         type = "CanonicalUser"
         id   = data.aws_canonical_user_id.current.id
+      }
+      permission = "FULL_CONTROL"
+    }
+
+    # CloudFront standard logging requires FULL_CONTROL for the CloudFront log delivery principal.
+    # This is distinct from the S3 LogDelivery group used for S3 server access logging.
+    grant {
+      grantee {
+        type = "CanonicalUser"
+        id   = data.aws_cloudfront_log_delivery_canonical_user_id.cloudfront.id
       }
       permission = "FULL_CONTROL"
     }

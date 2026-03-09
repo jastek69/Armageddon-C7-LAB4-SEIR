@@ -1,4 +1,4 @@
-# LAB3 Deployment Scripts
+# LAB4 Deployment Scripts
 
 ## 🚀 Quick Start
 
@@ -25,39 +25,6 @@ sed -i 's/\r$//' terraform_startup.sh terraform_apply.sh
 bash ./terraform_destroy.sh
 ```
 
-### Optional: Activate DynamoDB State Locking
-Default backend mode in this repo uses S3 lock files (`use_lockfile = true`).
-DynamoDB locking is optional and can be activated when needed (team/CI use).
-
-```bash
-# Create lock table in Tokyo region
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region ap-northeast-1
-
-# Create lock table in Sao Paulo region
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region sa-east-1
-```
-
-Then add this line to each backend block (`Tokyo/backend.tf`, `global/backend.tf`, `saopaulo/backend.tf`):
-```hcl
-dynamodb_table = "taaops-terraform-state-lock"
-```
-
-Then reinitialize each stack backend:
-```bash
-(cd Tokyo && terraform init -reconfigure)
-(cd global && terraform init -reconfigure)
-(cd saopaulo && terraform init -reconfigure)
-```
 
 ## 📋 Script Overview
 

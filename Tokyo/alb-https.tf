@@ -4,6 +4,8 @@ locals {
   alb_origin_cert_arn = var.alb_origin_cert_arn != "" ? var.alb_origin_cert_arn : (
     length(aws_acm_certificate.tokyo_alb_origin) > 0 ? aws_acm_certificate.tokyo_alb_origin[0].arn : ""
   )
+
+  alb_origin_dvo = var.alb_origin_cert_arn == "" ? tolist(aws_acm_certificate.tokyo_alb_origin[0].domain_validation_options) : []
 }
 
 resource "aws_acm_certificate" "tokyo_alb_origin" {
@@ -13,23 +15,20 @@ resource "aws_acm_certificate" "tokyo_alb_origin" {
 }
 
 resource "aws_route53_record" "tokyo_alb_origin_cert_validation" {
+  count           = var.alb_origin_cert_arn == "" ? 1 : 0
   allow_overwrite = true
-  for_each = var.alb_origin_cert_arn == "" ? {
-    for dvo in aws_acm_certificate.tokyo_alb_origin[0].domain_validation_options :
-    dvo.domain_name => dvo
-  } : {}
 
   zone_id = data.aws_route53_zone.main-taaops.zone_id
-  name    = each.value.resource_record_name
-  type    = each.value.resource_record_type
-  records = [each.value.resource_record_value]
+  name    = local.alb_origin_dvo[0].resource_record_name
+  type    = local.alb_origin_dvo[0].resource_record_type
+  records = [local.alb_origin_dvo[0].resource_record_value]
   ttl     = 300
 }
 
 resource "aws_acm_certificate_validation" "tokyo_alb_origin" {
   count                   = var.alb_origin_cert_arn == "" ? 1 : 0
   certificate_arn         = aws_acm_certificate.tokyo_alb_origin[0].arn
-  validation_record_fqdns = [for r in aws_route53_record.tokyo_alb_origin_cert_validation : r.fqdn]
+  validation_record_fqdns = [aws_route53_record.tokyo_alb_origin_cert_validation[0].fqdn]
 }
 
 resource "aws_lb_listener" "tokyo_alb_https_listener" {

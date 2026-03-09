@@ -20,14 +20,20 @@ run_destroy() {
 
 echo "WARNING: This will destroy LAB4 infrastructure in Global, New York GCP, Sao Paulo, and Tokyo stacks."
 echo "REMINDER: S3 buckets use force_destroy=true in this lab. All objects and versions will be deleted."
-read -r -p "Type 'DESTROY' to continue: " confirm
+echo ""
+echo -n "Type 'DESTROY' to continue: "
+read -r confirm </dev/tty
 if [[ "$confirm" != "DESTROY" ]]; then
   echo "Destroy cancelled."
   exit 0
 fi
 
-echo "Starting destroy in 5 seconds (Ctrl+C to cancel)..."
-sleep 5
+echo "Starting destroy in 10 seconds (Ctrl+C to cancel)..."
+for i in 10 9 8 7 6 5 4 3 2 1; do
+  printf "\r  %2d seconds remaining..." "$i"
+  sleep 1
+done
+printf "\r  Proceeding with destroy...          \n"
 
 # Stage 1: Global (must go first due origin/CloudFront dependencies)
 run_destroy "global" "global-destroy.tfplan"

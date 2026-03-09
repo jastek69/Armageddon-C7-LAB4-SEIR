@@ -1,5 +1,5 @@
-# São Paulo Backend Configuration  
-# Configure S3 backend for São Paulo state management with DynamoDB state locking
+# São Paulo Backend Configuration
+# S3 native locking (Terraform >=1.10) via conditional writes — no DynamoDB table required.
 
 terraform {
   backend "s3" {
@@ -7,8 +7,7 @@ terraform {
     key          = "saopaulo/sp022126terraform.tfstate"
     region       = "sa-east-1"
     encrypt      = true
-    dynamodb_table = "taaops-terraform-state-lock"
-    # use_lockfile = true # Use either this or dynamodb_table, not both.
+    use_lockfile = true
   }
 }
 

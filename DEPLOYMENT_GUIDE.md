@@ -62,19 +62,48 @@ aws dynamodb create-table \
 
 ### **Step 2: Configure Backend Settings**
 
-Current backend default is S3 lock files (`use_lockfile = true`).  
-To activate DynamoDB locking, add `dynamodb_table = "taaops-terraform-state-lock"` in:
+DynamoDB state locking is **already enabled** in all four stacks via `dynamodb_table = "taaops-terraform-state-lock"`. The tables exist in both `ap-northeast-1` and `sa-east-1` with `PAY_PER_REQUEST` billing.
+
+Affected backends (all already configured):
 - `Tokyo/backend.tf`
 - `global/backend.tf`
 - `saopaulo/backend.tf`
+- `newyork_gcp/2-backend.tf`
 
-After backend changes:
+If you ever change a backend key or switch regions, re-initialize with:
 
 ```bash
 (cd Tokyo && terraform init -reconfigure)
 (cd global && terraform init -reconfigure)
 (cd saopaulo && terraform init -reconfigure)
+(cd newyork_gcp && terraform init -reconfigure)
 ```
+
+### **Step 2b: Load Secrets Before Any Terraform Command**
+
+> **Why a `.secrets.env` file?**  
+> VPN Pre-Shared Keys (PSKs) and the Aurora DB password are sensitive credentials that must never be stored in `terraform.tfvars` or committed to version control. Instead, they live in `.secrets.env` at the repo root — excluded from Git via `.gitignore` — and are injected into Terraform as `TF_VAR_*` environment variables at runtime.
+
+**First time (or after a fresh clone):** copy the example template and fill in your values:
+```bash
+cp .secrets.env.example .secrets.env
+# Then edit .secrets.env — the db_password line fetches automatically from Secrets Manager;
+# do not replace it unless you want to use a static value.
+```
+
+**Every deploy/destroy session:** source the file to load all secrets into your shell:
+```bash
+source .secrets.env
+```
+
+This sets:
+| Variable | Source |
+|---|---|
+| `TF_VAR_db_password` | Fetched live from `taaops/rds/mysql` in Secrets Manager (`ap-northeast-1`) |
+| `TF_VAR_psk_tunnel_1..4` | VPN PSKs for TGW VPN resources |
+| `TF_VAR_aws_gcp_psk_tunnel_1..4` | VPN PSKs for AWS↔GCP HA VPN connections |
+
+`terraform_startup.sh` validates that all required variables are set before proceeding and exits with a clear error message if any are missing.
 
 Remote State Key Checklist (update these together for new deployments)
 | Stack / Reference | File and line range | Setting |
@@ -90,12 +119,25 @@ Remote State Key Checklist (update these together for new deployments)
 | Tokyo -> Sao Paulo remote state | [Tokyo/main.tf](Tokyo/main.tf#L46-L55) | `key` |
 
 ### **Step 3: Deploy with Wrapper Script (Recommended)**
+Run from `<project>` root:
 
-Run from LAB3 root:
 
+Load secrets and run the startup script:
 ```bash
-bash ./terraform_startup.sh
+# From LAB4 root
+source .secrets.env          # loads PSKs + fetches db_password from Secrets Manager
+bash ./terraform_startup.sh  # GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo
 ```
+
+`terraform_startup.sh` will abort immediately if any required `TF_VAR_*` is unset.
+
+**Full destroy + redeploy cycle:**
+```bash
+source .secrets.env
+bash terraform_destroy.sh    # type DESTROY when prompted; order: global -> newyork_gcp -> saopaulo -> Tokyo
+source .secrets.env          # re-source after destroy (shell may have been closed)
+bash terraform_startup.sh    # fully automated after secrets are sourced
+
 
 Windows Line Endings Fix (if scripts fail with /usr/bin/env)
 ```bash
@@ -145,6 +187,8 @@ Manual alternative:
 - If you need S3 buckets to delete cleanly, keep `force_destroy = true` in [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars) during destroy, then restore to `false` after.
 - Run `./terraform_destroy.sh` from repo root and confirm all four stacks complete; if any stack fails due to missing state, remove remaining resources manually before a clean apply.
 - For a clean apply from empty state, run `./terraform_startup.sh` from repo root (GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo).
+- **Secrets Manager pending deletion:** After a destroy, `taaops/rds/mysql` enters a recovery window and blocks recreation. `terraform_startup.sh` automatically force-deletes any pending secrets in Stage -3. If running manually, clear them first: `aws secretsmanager delete-secret --secret-id "taaops/rds/mysql" --force-delete-without-recovery --region ap-northeast-1`
+- **Lab vs Production — `recovery_window_in_days`:** `Tokyo/database.tf` sets `recovery_window_in_days = 0` for fast lab redeploys. In a production pipeline, change this to `7` or `30` to protect against accidental credential loss. With a non-zero value, the Stage -3 pre-flight in `terraform_startup.sh` handles the force-delete automatically during redeploys.
 
 ## ✅ **Partial Reset Scenarios**
 
@@ -246,7 +290,7 @@ aws ec2 describe-transit-gateway-peering-attachments \
 ### **Test Database Connectivity:**
 ```bash
 # From São Paulo EC2 instance
-mysql -h <tokyo-rds-endpoint> -u admin -p taaopsdb
+mysql -h <tokyo-rds-endpoint> -u admin -p galactus
 ```
 
 ### **Destroy Infrastructure:**
@@ -261,188 +305,8 @@ bash ./terraform_destroy.sh
 (cd Tokyo && terraform destroy)
 ```
 
-## 🔒 **DynamoDB State Locking Deep Dive**
-
-### **Why State Locking Matters**
-
-**The Problem:**
-Without state locking, concurrent Terraform operations can corrupt your state file:
-```bash
-# Terminal 1: Developer A runs
-terraform apply  # Takes 3 minutes
-
-# Terminal 2: Developer B runs simultaneously  
-terraform apply  # Corruption risk! 💥
-```
-
-**The Solution:**
-DynamoDB provides atomic locking to ensure only one Terraform operation runs per state file.
-
-### **AWS Documentation References**
-
-- **Official Guide**: [S3 Backend with DynamoDB Locking](https://developer.hashicorp.com/terraform/language/settings/backends/s3)
-- **DynamoDB**: [AWS DynamoDB Developer Guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/)
-- **Best Practices**: [Terraform State Management](https://developer.hashicorp.com/terraform/tutorials/state)
-
-### **How State Locking Works**
-
-1. **Lock Acquisition**: Terraform writes a lock record to DynamoDB with operation metadata
-2. **Operation Execution**: If lock successful, Terraform proceeds with plan/apply/destroy
-3. **Lock Release**: After completion, Terraform removes the lock record  
-4. **Conflict Prevention**: Concurrent operations wait or fail gracefully
-
-```bash
-# What you see during lock conflicts:
-Error: Error locking state: ConditionalCheckFailedException: 
-The conditional request failed
-
-Lock Info:
-  ID:        1a2b3c4d-e5f6-7890-abcd-ef1234567890
-  Path:      your-bucket/tokyo/terraform.tfstate
-  Operation: OperationTypeApply
-  Who:       john@laptop
-  Version:   1.5.7
-  Created:   2026-02-07 15:30:00 UTC
-```
-
-### **Setting Up DynamoDB Tables Properly**
-
-**Option 1: Use Terraform (Recommended)**
-```bash
-# Tokyo (from LAB3 root)
-(cd Tokyo && terraform init -backend=false && terraform apply -target=aws_dynamodb_table.terraform_lock)
-
-# Sao Paulo (from LAB3 root)
-(cd saopaulo && terraform init -backend=false && terraform apply -target=aws_dynamodb_table.terraform_lock)
-```
-
-**Option 2: Manual AWS CLI Setup**
-```bash
-# Tokyo region table
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region ap-northeast-1 \
-  --tags Key=Purpose,Value=TerraformStateLocking
-
-# São Paulo region table
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region sa-east-1 \
-  --tags Key=Purpose,Value=TerraformStateLocking
-```
-
-### **Testing State Locking**
-
-Verify your locking works:
-```bash
-# Terminal 1: Start long-running command
-cd Tokyo/
-terraform plan -detailed-exitcode
-
-# Terminal 2: Try concurrent operation (should wait)
-cd Tokyo/  
-terraform plan
-# Expected: "Error locking state: ConditionalCheckFailedException"
-```
-
-### **Managing Locks in Production**
-
-**Check Active Locks:**
-```bash
-# View current locks
-aws dynamodb scan \
-  --table-name taaops-terraform-state-lock \
-  --region ap-northeast-1
-
-# Check specific state file lock
-aws dynamodb get-item \
-  --table-name taaops-terraform-state-lock \
-  --key '{"LockID":{"S":"your-bucket/tokyo/terraform.tfstate-md5"}}' \
-  --region ap-northeast-1
-```
-
-**Emergency Lock Removal:**
-```bash
-# When someone's laptop crashes during apply
-terraform force-unlock <LOCK_ID>
-
-# Example:
-terraform force-unlock 1a2b3c4d-e5f6-7890-abcd-ef1234567890
-```
-
-### **Cost Analysis: DynamoDB State Locking**
-
-**Pricing (Pay-per-Request Model):**
-- Write requests: $0.25 per million writes
-- Read requests: $0.05 per million reads
-- Storage: $0.25 per GB-month
-
-**Real-world Cost Example (5-person team):**
-```
-Operations per month: ~200 lock/unlock cycles
-DynamoDB writes: 400 
-DynamoDB reads: 400
-Monthly cost: ~$0.10 (less than 10 cents!)
-
-Annual cost for state locking: ~$1.20 per project
-```
-
-**Free Tier Coverage:**
-- 25 WCU/RCU per month (sufficient for small teams)
-- First year covers most small to medium teams
-
-### **Required IAM Permissions**
-
-Add these permissions to your Terraform execution role:
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:DeleteItem"
-      ],
-      "Resource": [
-        "arn:aws:dynamodb:ap-northeast-1:*:table/taaops-terraform-state-lock",
-        "arn:aws:dynamodb:sa-east-1:*:table/taaops-terraform-state-lock"
-      ]
-    }
-  ]
-}
-```
-
-### **Troubleshooting State Locking Issues**
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `ResourceNotFoundException` | DynamoDB table doesn't exist | Create table in correct region |
-| `AccessDenied` | Missing DynamoDB permissions | Add IAM permissions above |
-| Stale locks after crash | Process terminated unexpectedly | Use `terraform force-unlock` |
-| Lock timeout | Another operation running | Wait or coordinate with team |
-
-**Debug Commands:**
-```bash
-# Check if table exists
-aws dynamodb describe-table \
-  --table-name taaops-terraform-state-lock \
-  --region ap-northeast-1
-
-# View table contents
-aws dynamodb scan \
-  --table-name taaops-terraform-state-lock \
-  --region ap-northeast-1 \
-  --max-items 5
-
 # Check Terraform state metadata
+```bash
 terraform show -json | jq '.version, .serial'
 ```
 
@@ -480,6 +344,105 @@ aws dynamodb update-continuous-backups \
 5. **Cost Management:** Consider TGW data transfer costs between regions
 6. **Security:** Database access is only via TGW - no public endpoints
 7. **Lock Management:** Monitor and cleanup stale locks in production environments
+
+---
+
+## 🧹 Manual Cleanup (Pre-Redeploy)
+
+When `terraform_destroy.sh` cannot run (connectivity failure, orphaned resources from previous deploys), manually verify the following before running `terraform_startup.sh`.
+
+### Verification Scripts
+
+```bash
+chmod +x cleanup_verify.sh cleanup_verify_gcp.sh
+
+# AWS — Tokyo (ap-northeast-1) + Sao Paulo (sa-east-1)
+./cleanup_verify.sh
+
+# GCP — newyork_gcp (project: taaops, region: us-central1)
+./cleanup_verify_gcp.sh
+```
+
+Both exit `1` (DIRTY) if blocking resources remain, `0` if safe to redeploy.
+
+### AWS — Tokyo (ap-northeast-1)
+
+#### 🔴 Must Verify Clean
+
+| Resource | Console Location | What to Look For |
+|---|---|---|
+| **Transit Gateways** | VPC → Transit Gateways | Delete extras — only 1 expected. Orphaned TGWs cause VPN connections to attach to the wrong gateway |
+| **VPCs** | VPC → Your VPCs | Delete all `nihonmachi` / lab VPCs — duplicates cause TGW attachment conflicts |
+| **VPN Connections** | VPC → Site-to-Site VPN | Delete all — orphaned ones show `AttachID: None` |
+| **Customer Gateways** | VPC → Customer Gateways | Delete `gcp_cgw_1` and `gcp_cgw_2` — persist after VPN deletion |
+| **Aurora RDS Cluster** | RDS → Databases | Delete cluster + instances — cannot be deployed over |
+| **NAT Gateways** | VPC → NAT Gateways | Delete — ~$32/mo each if left running |
+| **Elastic IPs** | EC2 → Elastic IPs | Release unassociated EIPs left after NAT gateway deletion |
+| **Route53 Private Zones** | Route53 → Hosted Zones | Delete `nihonmachi` zone — Terraform will conflict on create |
+
+#### 🟡 Check But Less Likely to Block
+
+| Resource | Notes |
+|---|---|
+| **IAM Roles/Policies** | Name conflicts cause `apply` errors — delete any with `taaops` / `tokyo` prefix |
+| **Lambda Functions** | Delete `tokyo_ir_lambda` and `tokyo_secrets_rotation` if present |
+| **S3 Buckets** (non-backend) | `taaops-regional-waf-*`, `tokyo-backend-logs-*`, `tokyo-ir-reports-*` — empty and delete |
+| **ALB** | Delete load balancer + target groups |
+| **Kinesis Firehose** | Delete `taaops-regional-waf-firehose` if present |
+| **KMS Keys** | 7-day minimum deletion delay — leave them, Terraform creates new ones |
+| **DynamoDB** `taaops-terraform-state-lock` | `terraform_startup.sh` bootstraps idempotently — safe to leave |
+
+#### 🟢 Safe to Leave Alone
+- `taaops-terraform-state-tokyo` S3 bucket — keep the bucket, only delete the `.tfstate` objects inside it
+- Security Groups — deleted automatically when their VPC is deleted
+
+#### Quick CLI Scan
+
+```bash
+# VPCs
+aws ec2 describe-vpcs --region ap-northeast-1 \
+  --query "Vpcs[?!IsDefault].{ID:VpcId,CIDR:CidrBlock,Name:Tags[?Key=='Name']|[0].Value}" \
+  --output table
+
+# Transit Gateways
+aws ec2 describe-transit-gateways --region ap-northeast-1 \
+  --query "TransitGateways[*].{ID:TransitGatewayId,State:State,Name:Tags[?Key=='Name']|[0].Value}" \
+  --output table
+
+# Orphaned VPN connections
+aws ec2 describe-vpn-connections --region ap-northeast-1 \
+  --query "VpnConnections[?State!='deleted'].{ID:VpnConnectionId,State:State,TGW:TransitGatewayId,AttachID:TransitGatewayAttachmentId}" \
+  --output table
+
+# NAT Gateways
+aws ec2 describe-nat-gateways --region ap-northeast-1 \
+  --query "NatGateways[?State!='deleted'].{ID:NatGatewayId,State:State,VPC:VpcId}" \
+  --output table
+```
+
+### GCP — newyork_gcp (us-central1)
+
+#### 🔴 Must Verify Clean
+
+| Resource | gcloud Command |
+|---|---|
+| VPC + Subnets | `gcloud compute networks list --filter="name:nihonmachi" --project=taaops` |
+| MIG | `gcloud compute instance-groups managed list --regions=us-central1 --filter="name:nihonmachi" --project=taaops` |
+| Instance Templates | `gcloud compute instance-templates list --filter="name:nihonmachi" --project=taaops` |
+| VPN Tunnels (tunnel00-03) | `gcloud compute vpn-tunnels list --regions=us-central1 --filter="name:tunnel0" --project=taaops` |
+| HA VPN Gateways | `gcloud compute vpn-gateways list --regions=us-central1 --filter="name:gcp-to-aws" --project=taaops` |
+| External VPN Gateways | `gcloud compute external-vpn-gateways list --filter="name:gcp-to-aws" --project=taaops` |
+| Cloud Routers | `gcloud compute routers list --regions=us-central1 --filter="name:nihonmachi OR name:gcp-to-aws" --project=taaops` |
+| ILB (Forwarding Rules, Backend Services, Health Checks) | `gcloud compute forwarding-rules list --regions=us-central1 --filter="name:nihonmachi" --project=taaops` |
+
+#### 🟡 Check But Less Likely to Block
+
+| Resource | Notes |
+|---|---|
+| Firewall Rules | Auto-deleted with VPC, but orphaned if VPC was already manually deleted |
+| Secret Manager (`nihonmachi-*`) | Terraform errors on create if secret name already exists |
+
+---
 
 ## 🎯 **Benefits of This Architecture**
 

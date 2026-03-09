@@ -874,6 +874,8 @@ aws s3 cp ./reports/IR/ir-report.md "s3://$REPORT_BUCKET/reports/ir-<incident_id
 
 ## Script glossary (quick reference)
 - `sanity_check.sh`: Local/remote verification of infra + app health; supports flags for optional checks.
+- `cleanup_verify.sh`: Post-destroy AWS resource verification for ap-northeast-1 and sa-east-1; exits 1 (DIRTY) if blocking resources remain, 0 if safe to redeploy.
+- `cleanup_verify_gcp.sh`: Post-destroy GCP resource verification for the newyork_gcp stack (project `taaops`, region `us-central1`); checks VPC, MIG, ILB, VPN tunnels, routers, firewalls, and secrets; same exit code contract as `cleanup_verify.sh`.
 - `scripts/publish_sanity_check.sh`: Uploads `sanity_check.sh` to S3 and prints a presigned URL.
 - `scripts/filter_alarm_reports.sh`: Lists report JSONs and filters by alarm state/name/severity/time.
 - `scripts/download_alarm_reports.sh`: Downloads matching report JSON + Markdown pairs from S3.
@@ -895,3 +897,85 @@ aws s3 cp ./reports/IR/ir-report.md "s3://$REPORT_BUCKET/reports/ir-<incident_id
   - `saopaulo/`
 - Do not run Terraform from the repository root.
 - Legacy root-level Terraform files were moved to `archive/root-terraform-from-root/` for reference.
+
+---
+
+## Manual Cleanup (ap-northeast-1)
+
+When `terraform_destroy.sh` cannot run due to connectivity issues or orphaned resources from previous deploys, manually verify the following in the AWS Console or via CLI before redeploying.
+
+### 🔴 Must Verify Clean
+These are most likely to be duplicated/orphaned and will block or corrupt a fresh deploy.
+
+| Resource | Console Location | What to Look For |
+|---|---|---|
+| **Transit Gateways** | VPC → Transit Gateways | Delete any extra TGWs beyond 1. Orphaned TGWs cause VPN connections to attach to the wrong gateway |
+| **VPCs** | VPC → Your VPCs | Delete all `nihonmachi` / lab VPCs — duplicate VPCs from previous deploys cause TGW attachment conflicts |
+| **VPN Connections** | VPC → Site-to-Site VPN | Delete all — orphaned ones show `AttachID: None` |
+| **Customer Gateways** | VPC → Customer Gateways | Delete `gcp_cgw_1` and `gcp_cgw_2` — these persist after VPN deletion |
+| **Aurora RDS Cluster** | RDS → Databases | Delete cluster + instances before redeploying — RDS takes ~5 min and cannot be deployed over |
+| **NAT Gateways** | VPC → NAT Gateways | Must be deleted manually — each costs ~$32/mo if left running |
+| **Elastic IPs** | EC2 → Elastic IPs | Release any unassociated EIPs left after NAT gateway deletion |
+
+### 🟡 Check But Less Likely to Block
+
+| Resource | Notes |
+|---|---|
+| **DynamoDB** `taaops-terraform-state-lock` | `terraform_startup.sh` skips bootstrap if it exists — safe to leave |
+| **KMS Keys** | Cannot be immediately deleted (7-day minimum schedule); leave them, Terraform creates new ones |
+| **IAM Roles/Policies** | Name conflicts cause `apply` errors — delete any with `taaops` / `tokyo` prefix if present |
+| **Lambda Functions** | Delete `tokyo_ir_lambda` and `tokyo_secrets_rotation` if present |
+| **S3 Buckets** (non-backend) | `taaops-regional-waf-*`, `tokyo-backend-logs-*`, `tokyo-ir-reports-*` — empty and delete |
+| **CloudWatch Log Groups** | Optional — Terraform recreates them, but old ones accumulate |
+| **Kinesis Firehose** | Delete `taaops-regional-waf-firehose` if present |
+| **ALB** | Delete load balancer + target groups |
+| **ACM Certificates** | Delete `tokyo_alb_origin` cert if in pending validation state |
+| **Route53 Private Hosted Zone** | Check for `nihonmachi` zone — Terraform will conflict if one already exists |
+
+### 🟢 Safe to Leave Alone
+- `taaops-terraform-state-tokyo` S3 bucket — keep the bucket, only delete the state file objects inside it
+- Security Groups — deleted automatically when their VPC is deleted
+
+### Verification Script
+
+Run `cleanup_verify.sh` (AWS) and `cleanup_verify_gcp.sh` (GCP) after a destroy or manual cleanup to confirm no blocking resources remain before redeploying:
+
+```bash
+chmod +x cleanup_verify.sh cleanup_verify_gcp.sh
+
+# AWS — Tokyo (ap-northeast-1) + Sao Paulo (sa-east-1)
+./cleanup_verify.sh
+
+# GCP — newyork_gcp (project: taaops, region: us-central1)
+./cleanup_verify_gcp.sh
+
+# Override project/region if needed
+GCP_PROJECT=taaops GCP_REGION=us-central1 ./cleanup_verify_gcp.sh
+```
+
+Both exit `0` (CLEAN or WARN) when safe to redeploy, and `1` (DIRTY) when blocking resources are still present. Set `CHECK_SAO=false` to skip the Sao Paulo checks in the AWS script.
+
+### Quick CLI Scan for Duplicates (manual)
+
+```bash
+# How many VPCs?
+aws ec2 describe-vpcs --region ap-northeast-1 \
+  --query "Vpcs[*].{ID:VpcId,CIDR:CidrBlock,Name:Tags[?Key=='Name']|[0].Value}" \
+  --output table
+
+# How many TGWs?
+aws ec2 describe-transit-gateways --region ap-northeast-1 \
+  --query "TransitGateways[*].{ID:TransitGatewayId,State:State,Name:Tags[?Key=='Name']|[0].Value}" \
+  --output table
+
+# Orphaned VPN connections?
+aws ec2 describe-vpn-connections --region ap-northeast-1 \
+  --query "VpnConnections[?State!='deleted'].{ID:VpnConnectionId,State:State,TGW:TransitGatewayId,AttachID:TransitGatewayAttachmentId}" \
+  --output table
+
+# NAT Gateways (don't forget — $$ if left running)
+aws ec2 describe-nat-gateways --region ap-northeast-1 \
+  --query "NatGateways[?State!='deleted'].{ID:NatGatewayId,State:State,VPC:VpcId}" \
+  --output table
+```
+

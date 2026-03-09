@@ -1,0 +1,17 @@
+{
+  "gcp_ha_vpn_interface_0_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "34.183.45.1"
+  },
+  "gcp_ha_vpn_interface_1_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "34.184.43.128"
+  },
+  "nihonmachi_ilb_ip": {
+    "sensitive": false,
+    "type": "string",
+    "value": "10.235.1.4"
+  }
+}

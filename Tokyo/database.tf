@@ -39,12 +39,11 @@ resource "aws_rds_cluster" "taaops_rds_cluster" {
   availability_zones   = var.tokyo_azs
   db_subnet_group_name = aws_db_subnet_group.tokyo_db_subnet_group.name
   engine               = "aurora-mysql"
-  database_name        = "taaopsdb"
+  database_name        = "galactus"
   master_username      = var.db_username
 
-  # Use Secrets Manager for password management - references existing secret in 16-secrets.tf
-  manage_master_user_password   = true
-  master_user_secret_kms_key_id = local.rds_kms_key_arn
+  # Use a custom Secrets Manager secret + rotation Lambda (not RDS-managed).
+  master_password             = var.db_password
 
   storage_encrypted               = true
   kms_key_id                      = local.rds_kms_key_arn
@@ -168,10 +167,7 @@ data "aws_iam_policy_document" "global_database_access" {
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret"
     ]
-    resources = [
-      aws_secretsmanager_secret.db_secret.arn,
-      aws_rds_cluster.taaops_rds_cluster.master_user_secret[0].secret_arn
-    ]
+    resources = [aws_secretsmanager_secret.db_secret.arn]
   }
 
   statement {
@@ -222,11 +218,16 @@ resource "aws_iam_policy" "global_database_access" {
 # DATABASE INTEGRATION - CREATE SECRETS AND PARAMETERS
 ################################################################################
 
+
 # Create the main database secret
 resource "aws_secretsmanager_secret" "db_secret" {
   name                    = "${var.project_name}/rds/mysql"
   description             = "Tokyo RDS Aurora MySQL database credentials"
-  recovery_window_in_days = 7
+  # LAB SETTING: recovery_window_in_days = 0 allows immediate recreation after destroy.
+  # PRODUCTION: Set to 7-30 days so accidental destroys don't permanently delete credentials.
+  # A non-zero value means terraform_startup.sh must force-delete the pending secret
+  # before re-applying — this is handled automatically by the Stage -3 pre-flight step.
+  recovery_window_in_days = 0
 
   tags = {
     Name        = "${var.project_name}-rds-secret"
@@ -246,7 +247,7 @@ resource "aws_secretsmanager_secret_version" "tokyo_db_secret_initial" {
     engine   = "aurora-mysql"
     host     = aws_rds_cluster.taaops_rds_cluster.endpoint
     port     = 3306
-    dbname   = "taaopsdb"
+    dbname   = "galactus"
     # Tokyo-specific endpoints
     cluster_endpoint = aws_rds_cluster.taaops_rds_cluster.endpoint
     reader_endpoint  = aws_rds_cluster.taaops_rds_cluster.reader_endpoint
@@ -296,10 +297,9 @@ resource "aws_ssm_parameter" "tokyo_db_name" {
 
 resource "aws_ssm_parameter" "tokyo_db_secret_arn" {
   name        = "/taaops/db/secret_arn"
-  description = "Tokyo RDS managed secret ARN"
+  description = "Tokyo RDS secret ARN"
   type        = "String"
-  value       = aws_rds_cluster.taaops_rds_cluster.master_user_secret[0].secret_arn
-  overwrite   = true
+  value       = aws_secretsmanager_secret.db_secret.arn
   tags = {
     Name      = "taaops-db-secret-arn"
     Region    = "Tokyo"
@@ -372,8 +372,7 @@ resource "aws_ssm_parameter" "saopaulo_db_secret_arn_replica" {
   provider = aws.saopaulo
   name     = "/taaops/db/secret_arn"
   type     = "String"
-  value    = aws_rds_cluster.taaops_rds_cluster.master_user_secret[0].secret_arn
-  overwrite = true
+  value    = aws_secretsmanager_secret.db_secret.arn
 
   tags = {
     Name         = "db-secret-arn-replica"

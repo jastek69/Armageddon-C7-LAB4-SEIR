@@ -91,10 +91,10 @@ resource "google_compute_router" "gcp-to-aws-cloud-router" {
 # GCP VPN Tunnels
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_vpn_tunnel
 
-# Tunnel 0
-resource "google_compute_vpn_tunnel" "tunnel0" {
+# Tunnel 00
+resource "google_compute_vpn_tunnel" "tunnel00" {
   count                           = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                            = "tunnel0"
+  name                            = "tunnel00"
   region                          = var.region
   vpn_gateway                     = google_compute_ha_vpn_gateway.gcp-to-aws-vpn-gw[0].id
   vpn_gateway_interface           = 0
@@ -110,10 +110,10 @@ resource "google_compute_vpn_tunnel" "tunnel0" {
 
 }
 
-# Tunnel 1
-resource "google_compute_vpn_tunnel" "tunnel1" {
+# Tunnel 01
+resource "google_compute_vpn_tunnel" "tunnel01" {
   count                           = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                            = "tunnel1"
+  name                            = "tunnel01"
   region                          = var.region
   vpn_gateway                     = google_compute_ha_vpn_gateway.gcp-to-aws-vpn-gw[0].id
   vpn_gateway_interface           = 0
@@ -128,10 +128,10 @@ resource "google_compute_vpn_tunnel" "tunnel1" {
   }
 }
 
-# Tunnel 2
-resource "google_compute_vpn_tunnel" "tunnel2" {
+# Tunnel 02
+resource "google_compute_vpn_tunnel" "tunnel02" {
   count                           = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                            = "tunnel2"
+  name                            = "tunnel02"
   region                          = var.region
   vpn_gateway                     = google_compute_ha_vpn_gateway.gcp-to-aws-vpn-gw[0].id
   vpn_gateway_interface           = 1
@@ -146,10 +146,10 @@ resource "google_compute_vpn_tunnel" "tunnel2" {
   }
 }
 
-# Tunnel 3
-resource "google_compute_vpn_tunnel" "tunnel3" {
+# Tunnel 03
+resource "google_compute_vpn_tunnel" "tunnel03" {
   count                           = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                            = "tunnel3"
+  name                            = "tunnel03"
   region                          = var.region
   vpn_gateway                     = google_compute_ha_vpn_gateway.gcp-to-aws-vpn-gw[0].id
   vpn_gateway_interface           = 1
@@ -168,117 +168,145 @@ resource "google_compute_vpn_tunnel" "tunnel3" {
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_interface
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_peer
 
-# Tunnel 0
-resource "google_compute_router_interface" "gcp-router-interface-tunnel0" {
+# Wait for all 4 VPN tunnels to reach ESTABLISHED before creating router
+# interfaces. The Cloud Router data plane binds the next-hop when the interface
+# is first created; if the tunnel IKE session is not yet up at that moment the
+# next-hop is recorded as INCOMPLETE and never self-heals.
+resource "time_sleep" "wait_for_vpn_tunnels" {
+  count = var.enable_aws_gcp_tgw_vpn ? 1 : 0
+  depends_on = [
+    google_compute_vpn_tunnel.tunnel00,
+    google_compute_vpn_tunnel.tunnel01,
+    google_compute_vpn_tunnel.tunnel02,
+    google_compute_vpn_tunnel.tunnel03,
+  ]
+  create_duration = "90s"
+
+  # Re-trigger the wait whenever any tunnel is replaced, ensuring interfaces
+  # are never created against a freshly-negotiating tunnel.
+  triggers = {
+    tunnel00_id = google_compute_vpn_tunnel.tunnel00[0].id
+    tunnel01_id = google_compute_vpn_tunnel.tunnel01[0].id
+    tunnel02_id = google_compute_vpn_tunnel.tunnel02[0].id
+    tunnel03_id = google_compute_vpn_tunnel.tunnel03[0].id
+  }
+}
+
+# Tunnel 00
+resource "google_compute_router_interface" "gcp-router-interface-tunnel00" {
   count    = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name     = "gcp-router-interface-tunnel0"
+  name     = "gcp-router-interface-tunnel00"
   router   = google_compute_router.gcp-to-aws-cloud-router[0].name
   region   = var.region
   ip_range = "${cidrhost(var.tunnel1_inside_cidr, 2)}/30"
 
-  vpn_tunnel = google_compute_vpn_tunnel.tunnel0[0].name
+  vpn_tunnel = google_compute_vpn_tunnel.tunnel00[0].name
+  depends_on = [time_sleep.wait_for_vpn_tunnels]
 
   lifecycle {
     prevent_destroy = false
   }
 }
 
-resource "google_compute_router_peer" "gcp-router-peer-tunnel0" {
+resource "google_compute_router_peer" "gcp-router-peer-tunnel00" {
   count                     = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                      = "gcp-router-peer-tunnel0"
+  name                      = "gcp-router-peer-tunnel00"
   router                    = google_compute_router.gcp-to-aws-cloud-router[0].name
   region                    = var.region
   peer_ip_address           = cidrhost(var.tunnel1_inside_cidr, 1)
   peer_asn                  = var.tokyo_aws_tgw_asn
   advertised_route_priority = 100
-  interface                 = google_compute_router_interface.gcp-router-interface-tunnel0[0].name
+  interface                 = google_compute_router_interface.gcp-router-interface-tunnel00[0].name
 
   lifecycle {
     prevent_destroy = false
   }
 }
 
-# Tunnel 1
-resource "google_compute_router_interface" "gcp-router-interface-tunnel1" {
+# Tunnel 01
+resource "google_compute_router_interface" "gcp-router-interface-tunnel01" {
   count      = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name       = "gcp-router-interface-tunnel1"
+  name       = "gcp-router-interface-tunnel01"
   router     = google_compute_router.gcp-to-aws-cloud-router[0].name
   region     = var.region
   ip_range   = "${cidrhost(var.tunnel2_inside_cidr, 2)}/30"
-  vpn_tunnel = google_compute_vpn_tunnel.tunnel1[0].name
+  vpn_tunnel = google_compute_vpn_tunnel.tunnel01[0].name
+  depends_on = [time_sleep.wait_for_vpn_tunnels]
 
   lifecycle {
     prevent_destroy = false
   }
 }
 
-resource "google_compute_router_peer" "gcp-router-peer-tunnel1" {
+resource "google_compute_router_peer" "gcp-router-peer-tunnel01" {
   count                     = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                      = "gcp-router-peer-tunnel1"
+  name                      = "gcp-router-peer-tunnel01"
   router                    = google_compute_router.gcp-to-aws-cloud-router[0].name
   region                    = var.region
   peer_ip_address           = cidrhost(var.tunnel2_inside_cidr, 1)
   peer_asn                  = var.tokyo_aws_tgw_asn
   advertised_route_priority = 100
-  interface                 = google_compute_router_interface.gcp-router-interface-tunnel1[0].name
+  interface                 = google_compute_router_interface.gcp-router-interface-tunnel01[0].name
 
   lifecycle {
     prevent_destroy = false
   }
 }
 
-# Tunnel 2
-resource "google_compute_router_interface" "gcp-router-interface-tunnel2" {
+# Tunnel 02
+resource "google_compute_router_interface" "gcp-router-interface-tunnel02" {
   count      = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name       = "gcp-router-interface-tunnel2"
+  name       = "gcp-router-interface-tunnel02"
   router     = google_compute_router.gcp-to-aws-cloud-router[0].name
   region     = var.region
   ip_range   = "${cidrhost(var.tunnel3_inside_cidr, 2)}/30"
-  vpn_tunnel = google_compute_vpn_tunnel.tunnel2[0].name
+  vpn_tunnel = google_compute_vpn_tunnel.tunnel02[0].name
+  depends_on = [time_sleep.wait_for_vpn_tunnels]
 
   lifecycle {
     prevent_destroy = false
   }
 }
 
-resource "google_compute_router_peer" "gcp-router-peer-tunnel2" {
+resource "google_compute_router_peer" "gcp-router-peer-tunnel02" {
   count                     = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                      = "gcp-router-peer-tunnel2"
+  name                      = "gcp-router-peer-tunnel02"
   router                    = google_compute_router.gcp-to-aws-cloud-router[0].name
   region                    = var.region
   peer_ip_address           = cidrhost(var.tunnel3_inside_cidr, 1)
   peer_asn                  = var.tokyo_aws_tgw_asn
   advertised_route_priority = 100
-  interface                 = google_compute_router_interface.gcp-router-interface-tunnel2[0].name
+  interface                 = google_compute_router_interface.gcp-router-interface-tunnel02[0].name
 
   lifecycle {
     prevent_destroy = false
   }
 }
 
-# Tunnel 3
-resource "google_compute_router_interface" "gcp-router-interface-tunnel3" {
+# Tunnel 03
+resource "google_compute_router_interface" "gcp-router-interface-tunnel03" {
   count      = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name       = "gcp-router-interface-tunnel3"
+  name       = "gcp-router-interface-tunnel03"
   router     = google_compute_router.gcp-to-aws-cloud-router[0].name
   region     = var.region
   ip_range   = "${cidrhost(var.tunnel4_inside_cidr, 2)}/30"
-  vpn_tunnel = google_compute_vpn_tunnel.tunnel3[0].name
+  vpn_tunnel = google_compute_vpn_tunnel.tunnel03[0].name
+  depends_on = [time_sleep.wait_for_vpn_tunnels]
 
   lifecycle {
     prevent_destroy = false
   }
 }
 
-resource "google_compute_router_peer" "gcp-router-peer-tunnel3" {
+resource "google_compute_router_peer" "gcp-router-peer-tunnel03" {
   count                     = var.enable_aws_gcp_tgw_vpn ? 1 : 0
-  name                      = "gcp-router-peer-tunnel3"
+  name                      = "gcp-router-peer-tunnel03"
   router                    = google_compute_router.gcp-to-aws-cloud-router[0].name
   region                    = var.region
   peer_ip_address           = cidrhost(var.tunnel4_inside_cidr, 1)
   peer_asn                  = var.tokyo_aws_tgw_asn
   advertised_route_priority = 100
-  interface                 = google_compute_router_interface.gcp-router-interface-tunnel3[0].name
+  interface                 = google_compute_router_interface.gcp-router-interface-tunnel03[0].name
 
   lifecycle {
     prevent_destroy = false

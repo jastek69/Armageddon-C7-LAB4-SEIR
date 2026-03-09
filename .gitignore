@@ -1,6 +1,9 @@
 # Local .terraform directories
 **/.terraform/*
 
+# Secret environment file (contains PSKs and db_password — never commit)
+.secrets.env
+
 
 # Terraform files are ignored for this lab. If you want to commit Terraform code later,
 # comment out the next line.

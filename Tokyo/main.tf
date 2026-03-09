@@ -80,16 +80,6 @@ data "aws_route53_zone" "main-taaops" {
 
 
 
-# Transit Gateway state
-data "terraform_remote_state" "tokyo" {
-  backend = "s3"
-  config = {
-    bucket = var.tokyo_state_bucket
-    key    = var.tokyo_state_key
-    region = var.tokyo_state_region
-  }
-}
-
 # LOCALS - Transit Gateway
 locals {
   # Prefer explicit override, otherwise use the local TGW resource (avoid self remote-state dependency).
@@ -205,7 +195,7 @@ resource "aws_subnet" "tokyo_subnet_private_c" {
   }
 }
 
-# Transit Gateway Subnet (for TGW attachment)
+# Transit Gateway Subnet (for TGW attachment) - AZ-a
 resource "aws_subnet" "tokyo_tgw_subnet" {
   vpc_id            = aws_vpc.shinjuku_vpc01.id
   cidr_block        = "10.233.100.0/28"
@@ -213,6 +203,20 @@ resource "aws_subnet" "tokyo_tgw_subnet" {
 
   tags = {
     Name = "${local.name_prefix}-tokyo-tgw-subnet"
+    Type = "TransitGateway"
+  }
+}
+
+# Transit Gateway Subnet (for TGW attachment) - AZ-c
+# Required so TGW has an ENI in ap-northeast-1c, enabling return traffic
+# delivery to instances in the 10.233.11.0/24 (private-subnet-b, AZ-c) subnet.
+resource "aws_subnet" "tokyo_tgw_subnet_c" {
+  vpc_id            = aws_vpc.shinjuku_vpc01.id
+  cidr_block        = "10.233.101.0/28"
+  availability_zone = var.tokyo_azs[1]
+
+  tags = {
+    Name = "${local.name_prefix}-tokyo-tgw-subnet-c"
     Type = "TransitGateway"
   }
 }
@@ -326,6 +330,19 @@ resource "aws_route_table_association" "tokyo_private_rt_assoc_c" {
   route_table_id = aws_route_table.tokyo_private_rt.id
 }
 
+# TGW attachment subnet (AZ-a) must also use the private route table so its ENI
+# can reach 10.235.0.0/16 via TGW on the return path back to GCP.
+resource "aws_route_table_association" "tokyo_tgw_subnet_rt_assoc" {
+  subnet_id      = aws_subnet.tokyo_tgw_subnet.id
+  route_table_id = aws_route_table.tokyo_private_rt.id
+}
+
+# TGW attachment subnet (AZ-c) also needs the private route table.
+resource "aws_route_table_association" "tokyo_tgw_subnet_c_rt_assoc" {
+  subnet_id      = aws_subnet.tokyo_tgw_subnet_c.id
+  route_table_id = aws_route_table.tokyo_private_rt.id
+}
+
 ################################################################################
 # TRANSIT GATEWAY - HUB CONFIGURATION
 ################################################################################
@@ -343,9 +360,10 @@ resource "aws_ec2_transit_gateway" "shinjuku_tgw01" {
   }
 }
 
-# VPC attachment to TGW
+# VPC attachment to TGW — include one subnet per AZ used by private instances
+# so TGW has an ENI in each AZ (prevents asymmetric routing drops).
 resource "aws_ec2_transit_gateway_vpc_attachment" "tokyo_vpc_attachment" {
-  subnet_ids         = [aws_subnet.tokyo_tgw_subnet.id]
+  subnet_ids         = [aws_subnet.tokyo_tgw_subnet.id, aws_subnet.tokyo_tgw_subnet_c.id]
   transit_gateway_id = aws_ec2_transit_gateway.shinjuku_tgw01.id
   vpc_id             = aws_vpc.shinjuku_vpc01.id
 
@@ -732,7 +750,6 @@ resource "aws_autoscaling_group" "tokyo_app_asg" {
   # Roll instances when the launch template/user data changes (hotfixes, patches).
   instance_refresh {
     strategy = "Rolling"
-    triggers = ["launch_template"]
 
     preferences {
       min_healthy_percentage = 50

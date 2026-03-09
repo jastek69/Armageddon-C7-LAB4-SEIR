@@ -8,6 +8,22 @@ data "terraform_remote_state" "tokyo" {
     key    = var.tokyo_state_key
     region = var.tokyo_state_region
   }
+  # Defaults allow terraform plan to succeed before Tokyo state exists.
+  # Empty strings are replaced by real values once Tokyo has been applied.
+  defaults = {
+    tokyo_transit_gateway_id   = ""
+    tokyo_transit_gateway_arn  = ""
+    tokyo_vpc_id               = ""
+    tokyo_vpc_cidr             = "10.0.0.0/8"
+    database_endpoint          = ""
+    database_reader_endpoint   = ""
+    database_secret_arn        = ""
+    database_security_group_id = ""
+    tokyo_sao_peering_id       = ""
+    kms_key_id                 = ""
+    cloudwatch_log_group_name  = ""
+    account_id                 = ""
+  }
 }
 
 # LOCAL AWS DATA SOURCES

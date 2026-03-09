@@ -4,6 +4,19 @@ variable "project_name" {
   default     = "taaops"
 }
 
+# Break-glass CloudFront invalidation
+variable "break_glass_invalidation" {
+  description = "Set to true to trigger a CloudFront cache invalidation on the next apply."
+  type        = bool
+  default     = false
+}
+
+variable "break_glass_paths" {
+  description = "Cache paths to invalidate when running the break-glass invalidation action."
+  type        = list(string)
+  default     = ["/*"]
+}
+
 variable "domain_name" {
   description = "Apex domain name."
   type        = string

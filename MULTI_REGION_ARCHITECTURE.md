@@ -61,6 +61,23 @@ This Terraform configuration implements a secure multi-region AWS architecture w
 - `[04-igw-nat.tf](04-igw-nat.tf)`: Internet and NAT gateways for both regions
 - `[05-rtb.tf](05-rtb.tf)`: Route tables with cross-region routing
 
+### Tunnel Notes:
+
+time_sleep & triggers:
+[time_sleep](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)
+The `time_sleep` breaks the dependency: it forces Terraform to wait 90s after tunnel creation before creating the interfaces, so Cloud Router always sees a live, ESTABLISHED tunnel on first bind.
+
+1. Cross-stack sequencing
+Tokyo (Stage 1) creates the AWS TGW VPN connections and outputs the tunnel outside IPs. newyork_gcp (Stage 3) reads those outputs and creates the GCP tunnels. By the time Stage 3 runs, the AWS side has been sitting idle for several minutes waiting. The moment GCP creates its tunnels, AWS is ready to respond immediately — but GCP still needs time to complete its own IKE negotiation.
+
+2. Cross-vendor IKE negotiation is slower
+AWS TGW ↔ GCP Cloud VPN have to agree on cipher suites, lifetimes, and DH groups across vendor implementations. That handshake takes 15–45+ seconds. In a GCP↔GCP setup both sides are the same implementation and negotiate in 2–5 seconds — fast enough that Terraform's sequential resource creation naturally "waits" long enough.
+
+3. Cloud Router snapshot behavior
+This is the non-obvious part. Cloud Router records the next-hop binding once, at interface creation time. It doesn't watch the tunnel and update when it transitions from NEGOTIATING → ESTABLISHED. So if the interface is created 1 second after the tunnel API call returns — which is what Terraform does without the sleep — it always loses the race on a cross-vendor setup.
+
+
+
 ### Connectivity & Security
 - `[tokyo_tgw.tf](tokyo_tgw.tf)`: Transit Gateway inter-region peering
 - `[09-security-groups.tf](09-security-groups.tf)`: Multi-region security groups
@@ -90,6 +107,7 @@ São Paulo Compute → São Paulo TGW → Tokyo TGW → Tokyo Database
 ## Pre-Deploy Sanity Checklist
 
 - Remote state keys align with backends for Tokyo, global, Sao Paulo, and New York GCP stacks.
+- Backend locking uses S3 lock files (`use_lockfile = true`) in all stacks.
 - Global stack tfvars include `tokyo_state_key`, domain, and subdomain values (CloudFront/Route53 depend on them).
 - AWS <-> GCP VPN flags are set for a full deploy: `enable_aws_gcp_tgw_vpn = true` and `enable_gcp_router_destroy = false`.
 - Tokyo is configured to pull GCP HA VPN public IPs from remote state via `gcp_state_bucket`, `gcp_state_key`, and `gcp_state_region`.

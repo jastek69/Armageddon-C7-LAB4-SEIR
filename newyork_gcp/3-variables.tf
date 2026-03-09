@@ -143,6 +143,15 @@ variable "db_password_secret_name" {
   default = "nihonmachi-tokyo-rds-password"
 }
 
+# Actual DB password — set via: export TF_VAR_db_password="..."
+# Extract from AWS: aws secretsmanager get-secret-value --secret-id taaops/rds/mysql \
+#   --region ap-northeast-1 --query SecretString --output text | python3 -c \
+#   "import sys,json; print(json.load(sys.stdin)['password'])"
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+
 variable "nihonmachi_service_account_email" {
   description = "Service account email for Nihonmachi instances."
   type        = string

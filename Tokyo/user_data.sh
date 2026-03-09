@@ -83,7 +83,7 @@ PARAM_DB_NAME = os.environ.get("PARAM_DB_NAME", "/lab/db/name")
 PARAM_DB_SECRET_ARN = os.environ.get("PARAM_DB_SECRET_ARN", "/taaops/db/secret_arn")
 PARAM_DB_ENDPOINT = os.environ.get("PARAM_DB_ENDPOINT", "/taaops/db/endpoint")
 FALLBACK_DB_ENDPOINT = os.environ.get("FALLBACK_DB_ENDPOINT", "/lab/db/endpoint")
-FALLBACK_DB_NAME = os.environ.get("FALLBACK_DB_NAME", "taaopsdb")
+FALLBACK_DB_NAME = os.environ.get("FALLBACK_DB_NAME", "galactus")
 
 secrets = boto3.client("secretsmanager", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)

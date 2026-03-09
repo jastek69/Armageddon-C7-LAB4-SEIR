@@ -101,47 +101,25 @@ São Paulo App Servers → São Paulo TGW → TGW Peering → Tokyo TGW → Toky
 3. Key pairs created in both regions
 4. Update backend configurations with actual bucket names
 
+### Deployment Run process:
+1. terraform init -reconfigure (on redeploys) in each stack: global, Tokyo, saopaulo, newyork_gcp
+2. Ensure S3 lockfile locking is enabled (`use_lockfile = true`) and re-init each stack if backends changed.
+3. For the custom Secrets Manager + rotation flow, set an initial password before running `terraform_startup.sh` (rotation will take over later).
+  - Rebuild after destroy → restore the secret first if it still exists, then set `TF_VAR_db_password`.
+  - First-time deploy → set `TF_VAR_db_password` only.
+
 ### State Locking Options
 Summary:
-The lock table must be in the same region as the S3 backend bucket.
-Note: the New York backend uses ap-northeast-1, so it should point at the Tokyo-region lock table.
+This repo uses S3 lock files via `use_lockfile = true`. The lock file lives in the same state bucket.
+Note: the New York backend uses the Tokyo-region state bucket (ap-northeast-1), so its lock file is stored there too.
 
-***`lockfile` method***: Legacy option using S3 lock files (`use_lockfile = true`).
-
-***`DynamoDB` method***: Recommended for team/CI. Backends now include `dynamodb_table` and the lockfile option is commented.
-Terraform S3 backend + DynamoDB locking:
+Terraform S3 backend locking:
 https://developer.hashicorp.com/terraform/language/settings/backends/s3
+To enable lockfile locking everywhere:
+1. Ensure `use_lockfile = true` is set in each backend (Tokyo, global, saopaulo, newyork_gcp).
+2. Run `terraform init -reconfigure` in each stack.
 
-AWS DynamoDB CreateTable API (official AWS docs):
-https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html
-
-To enable DynamoDB locking everywhere:
-1. Create the lock table in each backend region (TF is already present for Tokyo and Sao Paulo).
-2. Ensure `dynamodb_table = "taaops-terraform-state-lock"` is set in each backend (Tokyo, global, saopaulo, newyork_gcp).
-3. Keep `use_lockfile` commented (use only one locking method).
-4. Run `terraform init -reconfigure` in each stack.
-
-Create the lock table in all regions:
-```bash
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region ap-northeast-1
-
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region sa-east-1
-```
-2. Add this to each backend: `Tokyo/backend.tf`, `global/backend.tf`, `saopaulo/backend.tf`, `newyork_gcp/2-backend.tf`
-```hcl
-dynamodb_table = "taaops-terraform-state-lock"
-```
-3. Reinitialize:
+Reinitialize:
 ```bash
 (cd Tokyo && terraform init -reconfigure)
 (cd global && terraform init -reconfigure)
@@ -149,10 +127,26 @@ dynamodb_table = "taaops-terraform-state-lock"
 (cd newyork_gcp && terraform init -reconfigure)
 ```
 
-Note: Use one locking method at a time (`use_lockfile` or `dynamodb_table`).
+Note: Use one locking method at a time. This repo uses `use_lockfile`.
 
-### Lock Recovery (DynamoDB)
-If a Terraform run is interrupted, the lock can remain in DynamoDB and block future runs.
+Optional DynamoDB locking:
+- Set `dynamodb_table = "taaops-terraform-state-lock"` in each backend and remove `use_lockfile`.
+- Create the lock table in each backend region.
+- Run `terraform init -reconfigure` in each stack.
+
+Key distinctions:
+
+Approach |	Status |	Notes
+dynamodb_table in backend |	✅ Fully supported	|Works on all Terraform versions; requires a DynamoDB table per region
+use_lockfile = true |	✅ New (TF 1.10+) | Requires S3 versioning enabled on the bucket; simpler operationally
+Both are valid. The DynamoDB approach is still preferred in some organizations because:
+
+- It works on Terraform < 1.10
+- DynamoDB lock records are queryable (useful for auditing who holds a lock)
+- Some CI/CD frameworks and compliance baselines explicitly require it
+
+### Lock Recovery (S3 lock file)
+If a Terraform run is interrupted, a lock can remain and block future runs.
 
 1. Re-run the command to see the lock ID.
 2. From the stack directory, force-unlock using that ID:
@@ -172,20 +166,44 @@ The database password is managed through Secrets Manager. On reruns:
 
 Tip: When using rotation, confirm the secret value after re-apply to ensure the app uses the current credential.
 
-CLI examples (restore + import existing secret):
+For Re-runs:
+The db_password prompt is required by your Terraform variables even during terraform import. Terraform needs a value to evaluate the config.
+The normal sequence: terraform init -reconfigure → terraform force-unlock <LOCK_ID> (if prompted) → set `TF_VAR_db_password` → import or apply.
+If the secret already exists, import it into state before apply to avoid `ResourceExistsException`.
+
+
+
+### Secret Restore & Import (First Run and Reruns)
+
+**First run (secret does not yet exist in AWS):** just set the password and apply — Terraform creates the secret.
 ```bash
-# 1) Cancel deletion (only needed if the secret is scheduled for deletion)
-aws secretsmanager restore-secret --secret-id "taaops/rds/mysql" --region ap-northeast-1
-
-# 2) Import into the Tokyo stack state
-cd Tokyo
-terraform import aws_secretsmanager_secret.db_secret "taaops/rds/mysql"
-
-# 3) Re-apply
-terraform apply
+export TF_VAR_db_password="YOUR_INITIAL_PASSWORD"
+./terraform_startup.sh
 ```
 
-CLI example (reset secret value):
+**Rerun (secret already exists in AWS but is missing from Terraform state):**
+```bash
+# Step 1 — If the secret is scheduled for deletion, cancel it first (skip if Active)
+aws secretsmanager restore-secret --secret-id "taaops/rds/mysql" --region ap-northeast-1 && echo "Restored OK"
+
+# Step 2 — Read the existing password from the secret and export it
+export TF_VAR_db_password=$(aws secretsmanager get-secret-value \
+  --secret-id "taaops/rds/mysql" \
+  --region ap-northeast-1 \
+  --query 'SecretString' --output text | jq -r '.password')
+echo "Password: ${#TF_VAR_db_password} chars"  # must be > 0
+
+# Step 3 — Import the secret into Tokyo Terraform state (run from LAB4 root)
+(cd Tokyo && terraform import aws_secretsmanager_secret.db_secret "taaops/rds/mysql")
+
+# Step 4 — Run the full startup
+./terraform_startup.sh
+```
+
+> **Error: `InvalidRequestException` — secret already scheduled for deletion**
+> Run Step 1 above (`restore-secret`) before proceeding. The secret must be in `Active` state before Terraform can import or reference it.
+
+**Reset secret value (change the stored password):**
 ```bash
 aws secretsmanager put-secret-value \
   --secret-id "taaops/rds/mysql" \
@@ -193,14 +211,12 @@ aws secretsmanager put-secret-value \
   --secret-string '{"username":"admin","password":"NEW_PASSWORD","engine":"mysql","port":3306,"host":"CLUSTER_ENDPOINT","dbname":"taaopsdb"}'
 ```
 
-CLI example (reset secret value using SSM parameters):
+**Reset secret value using live SSM parameters (post-deploy, when endpoint is known):**
 ```bash
 DB_ENDPOINT="$(aws ssm get-parameter --name /taaops/db/endpoint --region ap-northeast-1 --query 'Parameter.Value' --output text)"
 DB_NAME="$(aws ssm get-parameter --name /taaops/db/name --region ap-northeast-1 --query 'Parameter.Value' --output text)"
-
-# Port should be 3306
 DB_PORT="$(aws ssm get-parameter --name /taaops/db/port --region ap-northeast-1 --query 'Parameter.Value' --output text)"
-DB_USER="admin" # From Tokyo/terraform.tfvars (db_username)
+DB_USER="admin"  # matches db_username in Tokyo/terraform.tfvars
 
 aws secretsmanager put-secret-value \
   --secret-id "taaops/rds/mysql" \
@@ -210,8 +226,13 @@ aws secretsmanager put-secret-value \
 echo "Using DB port: ${DB_PORT} (expected 3306)"
 ```
 
+
 ### Deployment (Recommended)
 Run from `<project>` root:
+Set `TF_VAR_db_password` first for the custom Secrets Manager + rotation flow:
+```bash
+export TF_VAR_db_password="YOUR_INITIAL_PASSWORD"
+```
 ```bash
 bash ./terraform_startup.sh
 ```
@@ -243,6 +264,7 @@ Destroy order in script:
 ### Manual Alternative
 ```bash
 # Apply
+export TF_VAR_db_password="YOUR_INITIAL_PASSWORD"
 (cd newyork_gcp && terraform init -upgrade && terraform plan && terraform apply -target=google_compute_network.nihonmachi-vpc -target=google_compute_ha_vpn_gateway.gcp-to-aws-vpn-gw)
 (cd Tokyo && terraform init -upgrade && terraform plan && terraform apply)
 (cd global && terraform init -upgrade && terraform plan && terraform apply)
@@ -262,6 +284,50 @@ Destroy order in script:
 # Check TGW route tables
 # Verify ALB health checks
 ```
+
+## LAB4 Deliverables Checklist
+
+### Deliverable 1 — Private-only access proof
+- [ ] Capture internal ILB details:
+```bash
+gcloud compute forwarding-rules describe nihonmachi-fr01 --region us-central1
+```
+- [ ] From a host inside the VPN corridor, verify internal ILB access:
+```bash
+curl -k https://<INTERNAL_LB_IP>/health
+curl -k https://<INTERNAL_LB_IP>/
+```
+- [ ] From the public internet, show the internal ILB does not respond.
+
+### Deliverable 2 — MIG proof
+- [ ] List managed instance groups:
+```bash
+gcloud compute instance-groups managed list --regions us-central1
+```
+- [ ] List app instances:
+```bash
+gcloud compute instances list --filter="name~nihonmachi-app"
+```
+
+### Deliverable 3 — Tokyo RDS connectivity proof
+- [ ] From the VM (SSH via IAP or internal bastion), run:
+```bash
+source /etc/profile.d/tokyo_rds.sh
+python3 /usr/local/bin/rds_test.py
+```
+- [ ] Submit the JSON output.
+
+### Deliverable 4 — Process proof (PSK discipline reminder)
+- [ ] Write 6-10 lines covering:
+- [ ] How PSKs were generated and shared (out-of-band)
+- [ ] Why secrets must not go in Terraform state
+- [ ] What counts as a compliance mistake (PHI in logs, local DB, etc.)
+
+### Restrictions reminders
+- [ ] No databases in GCP
+- [ ] No PHI in logs
+- [ ] Only private access over VPN corridor
+- [ ] Passwords/secrets must not be hardcoded in TF or Git
 
 ## Security Architecture
 
@@ -410,6 +476,8 @@ If you wish to share IP addresses and hostnames, you could publish them as norma
 - **Availability Zones**: Region-specific AZ names
 - **Instance Types**: Regional availability varies
 
+LAB4 deliverables checklist: [LAB4_CHECKLIST.md](LAB4_CHECKLIST.md)
+
 ## Troubleshooting
 
 ### Common Issues
@@ -452,3 +520,44 @@ aws ec2 describe-security-groups
 3. **Database replication**: Cross-region Aurora replicas
 4. **Auto-failover**: Health check-based region switching
 5. **CI/CD integration**: Automated deployment pipelines
+
+
+
+## Standard Cleanup commands:
+
+S3 Bucket - State bucket:
+
+> **Why `terraform_destroy.sh` does not delete the state bucket:**
+> The state bucket (`taaops-terraform-state-saopaulo`, `taaops-terraform-state-tokyo`) is a **bootstrap resource** — it is referenced only in `backend.tf` as a configuration parameter, not declared as a `resource "aws_s3_bucket"` block in any stack. Terraform only destroys resources it tracks in state. Additionally, Terraform cannot delete the bucket it is actively reading state from mid-operation. The manual cleanup below must be run **after** destroy completes.
+
+If versioning is enabled - to delete all versions and delete markers before you can remove the bucket:
+```bash
+# 1. Delete all object versions
+aws s3api delete-objects \
+  --bucket taaops-terraform-state-saopaulo \
+  --region sa-east-1 \
+  --delete "$(aws s3api list-object-versions \
+    --bucket taaops-terraform-state-saopaulo \
+    --region sa-east-1 \
+    --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
+    --output json)" 2>/dev/null
+
+# 2. Delete all delete markers
+aws s3api delete-objects \
+  --bucket taaops-terraform-state-saopaulo \
+  --region sa-east-1 \
+  --delete "$(aws s3api list-object-versions \
+    --bucket taaops-terraform-state-saopaulo \
+    --region sa-east-1 \
+    --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
+    --output json)" 2>/dev/null
+
+# 3. Force-empty any remaining objects and delete the bucket - --force empties current objects but won't remove old versions — use the three-step version above to be thorough.
+aws s3 rb s3://taaops-terraform-state-saopaulo --force --region sa-east-1
+```
+
+
+Short version if versioning is off or not concerned about the versions:
+```bash
+aws s3 rb s3://taaops-terraform-state-saopaulo --force --region sa-east-1
+```

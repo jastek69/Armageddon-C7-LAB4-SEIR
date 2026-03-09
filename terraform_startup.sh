@@ -8,6 +8,7 @@ trap 'echo "ERROR on line $LINENO"; exit 1' ERR
 
 WAIT_TIME=30
 TGW_WAIT_TIME=120
+DELIVERABLES_DIR="LAB4-DELIVERABLES"
 
 run_apply() {
   local stack_dir="$1"
@@ -15,8 +16,8 @@ run_apply() {
   echo ""
   echo "=== Deploying ${stack_dir} ==="
   cd "$stack_dir"
-  terraform validate
   terraform init -upgrade
+  terraform validate
   terraform plan -out="$plan_file"
   terraform apply -auto-approve "$plan_file"
   cd - >/dev/null
@@ -30,14 +31,100 @@ run_apply_targets() {
   echo ""
   echo "=== Deploying ${stack_dir} (targeted) ==="
   cd "$stack_dir"
-  terraform validate
   terraform init -upgrade
+  terraform validate
   terraform plan -out="$plan_file" "${targets[@]/#/-target=}"
   terraform apply -auto-approve "$plan_file"
   cd - >/dev/null
 }
 
+
+
+dump_outputs() {
+  local stack_dir="$1"
+  local out_file="$2"
+  echo ""
+  echo "=== Capturing Terraform outputs for ${stack_dir} ==="
+  mkdir -p "$DELIVERABLES_DIR"
+  cd "$stack_dir"
+  terraform output -json > "../${DELIVERABLES_DIR}/${out_file}"
+  cd - >/dev/null
+}
+
+assert_tokyo_state() {
+  echo ""
+  echo "=== Verifying Tokyo state exists before deploying dependent stacks ==="
+  cd Tokyo
+  if terraform output -json >/dev/null 2>&1; then
+    echo "  Tokyo state verified — proceeding to dependent stacks."
+  else
+    echo ""
+    echo "ERROR: Tokyo state not found or empty."
+    echo "  Tokyo apply may have failed or state was not written to S3."
+    echo "  Fix the Tokyo stack error above, then rerun terraform_startup.sh."
+    echo "  Dependent stacks (global, newyork_gcp, saopaulo) will be skipped."
+    exit 1
+  fi
+  cd - >/dev/null
+}
+
+# Validate required secret env vars are set (must source .secrets.env first)
+REQUIRED_VARS=(TF_VAR_db_password TF_VAR_psk_tunnel_1 TF_VAR_psk_tunnel_2 TF_VAR_psk_tunnel_3 TF_VAR_psk_tunnel_4)
+MISSING=()
+for v in "${REQUIRED_VARS[@]}"; do
+  [[ -z "${!v:-}" ]] && MISSING+=("$v")
+done
+if [[ ${#MISSING[@]} -gt 0 ]]; then
+  echo "ERROR: Required environment variables are not set:"
+  printf '  %s\n' "${MISSING[@]}"
+  echo "Run: source .secrets.env   (from LAB4 root)"
+  exit 1
+fi
+
 echo "Starting LAB4 deployment: GCP seed -> Tokyo -> Global -> New York GCP -> Sao Paulo"
+
+# Stage -3: Force-delete any secrets pending deletion (7-day recovery window blocks recreate)
+echo ""
+echo "=== Clearing secrets pending deletion ==="
+for secret_region in "taaops/rds/mysql:ap-northeast-1" "nihonmachi-tokyo-rds-password:us-central1"; do
+  secret="${secret_region%%:*}"
+  region="${secret_region##*:}"
+  # Only delete if secret exists and is pending deletion
+  status=$(aws secretsmanager describe-secret --secret-id "$secret" --region "$region" \
+    --query 'DeletedDate' --output text 2>/dev/null || echo "None")
+  if [[ "$status" != "None" && "$status" != "" ]]; then
+    echo "  Force-deleting pending secret: $secret"
+    aws secretsmanager delete-secret --secret-id "$secret" \
+      --force-delete-without-recovery --region "$region" 2>/dev/null || true
+  else
+    echo "  Secret $secret: not pending deletion"
+  fi
+done
+
+# Stage -2: Ensure S3 state buckets exist (prerequisite for backend init)
+echo ""
+echo "=== Ensuring S3 state buckets exist ==="
+for bucket_region in "taaops-terraform-state-tokyo:ap-northeast-1" "taaops-terraform-state-saopaulo:sa-east-1"; do
+  bucket="${bucket_region%%:*}"
+  region="${bucket_region##*:}"
+  if aws s3api head-bucket --bucket "$bucket" --region "$region" 2>/dev/null; then
+    echo "  S3 bucket $bucket already exists"
+  else
+    echo "  Creating S3 bucket $bucket in $region..."
+    if [[ "$region" == "us-east-1" ]]; then
+      aws s3api create-bucket --bucket "$bucket" --region "$region"
+    else
+      aws s3api create-bucket --bucket "$bucket" --region "$region" \
+        --create-bucket-configuration LocationConstraint="$region"
+    fi
+    aws s3api put-bucket-versioning --bucket "$bucket" --region "$region" \
+      --versioning-configuration Status=Enabled
+    aws s3api put-bucket-encryption --bucket "$bucket" --region "$region" \
+      --server-side-encryption-configuration \
+      '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+    echo "  Created $bucket"
+  fi
+done
 
 # Stage 0: GCP seed (HA VPN public IPs)
 run_apply_targets "newyork_gcp" "gcp-seed.tfplan" \
@@ -50,6 +137,7 @@ sleep "$WAIT_TIME"
 run_apply "Tokyo" "tokyo.tfplan"
 echo "Waiting ${WAIT_TIME}s for Tokyo resources to stabilize..."
 sleep "$WAIT_TIME"
+assert_tokyo_state
 
 # Stage 2: Global
 run_apply "global" "global.tfplan"
@@ -57,14 +145,21 @@ echo "Waiting ${WAIT_TIME}s for Global resources to stabilize..."
 sleep "$WAIT_TIME"
 
 # Stage 3: New York GCP (full)
+# Note: 5-gcp-vpn-connections.tf contains a time_sleep.wait_for_vpn_tunnels
+# resource (90s) that gates interface/peer creation until tunnels are ESTABLISHED,
+# preventing the nextHopOrigin=INCOMPLETE Cloud Router race condition.
 run_apply "newyork_gcp" "newyork-gcp.tfplan"
-echo "Waiting ${WAIT_TIME}s for GCP VPN resources to stabilize..."
-sleep "$WAIT_TIME"
 
 # Stage 4: Sao Paulo
 run_apply "saopaulo" "saopaulo.tfplan"
 echo "Waiting ${TGW_WAIT_TIME}s for TGW peering/resources to stabilize..."
 sleep "$TGW_WAIT_TIME"
+
+# Stage 4b: Capture outputs for deliverables
+dump_outputs "Tokyo" "tokyo-outputs.json"
+dump_outputs "global" "global-outputs.json"
+dump_outputs "newyork_gcp" "newyork-gcp-outputs.json"
+dump_outputs "saopaulo" "saopaulo-outputs.json"
 
 # Stage 4: Summary outputs
 echo ""

@@ -1,0 +1,1 @@
+{"commands": ["timeout 25 bash -c 'echo > /dev/tcp/10.235.1.3/443' && echo GCP_v4_OPEN || echo GCP_v4_FAILED"]}

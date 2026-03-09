@@ -1,0 +1,32 @@
+{
+  "cloudfront_distribution_domain_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "d2xfl0j3t074bz.cloudfront.net"
+  },
+  "cloudfront_distribution_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "E3ILP55E7IILJG"
+  },
+  "cloudfront_logs_bucket": {
+    "sensitive": false,
+    "type": "string",
+    "value": "taaops-cloudfront-logs-015195098145"
+  },
+  "cloudfront_waf_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:wafv2:us-east-1:015195098145:global/webacl/taaops-cf-waf01/52d56711-de1d-4ab0-a6a4-729c4fe25525"
+  },
+  "origin_fqdn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "origin.jastek.click"
+  },
+  "route53_zone_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "Z0226086O3FCYG2A1C50"
+  }
+}

@@ -320,3 +320,23 @@ variable "gcp_advertised_cidr" {
   type        = string
   default     = "10.240.0.0/16"
 }
+
+
+# Break Glass Invalidation
+variable "break_glass_invalidation" {
+  description = "Trigger a CloudFront invalidation (for testing or emergency use)."
+  type        = bool
+  default     = false
+}
+
+variable "break_glass_paths" {
+  description = "List of paths to invalidate when break_glass_invalidation is true."
+  type        = list(string)
+  default     = [
+      "/images/*",
+      "/css/*",
+      "/js/app.js",
+      "/index.html"
+    ]
+
+}

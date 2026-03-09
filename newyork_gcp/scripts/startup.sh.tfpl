@@ -12,25 +12,57 @@ TOKYO_RDS_HOST="${tokyo_rds_host}"
 TOKYO_RDS_PORT="${tokyo_rds_port}"
 TOKYO_RDS_USER="${tokyo_rds_user}"
 SECRET_NAME="${secret_name}"
+CERT_B64="${cert_b64}"
+KEY_B64="${key_b64}"
 
 apt-get update -y
-apt-get install -y nginx python3 python3-pip jq
+apt-get install -y nginx python3 python3-pip python3-pymysql jq
 
-pip3 install --no-cache-dir pymysql
+# Install pymysql via apt (preferred on Debian 12 - avoids PEP 668 pip restriction).
+# Fall back to pip with --break-system-packages only if the apt package is not available.
+python3 -c "import pymysql" 2>/dev/null || pip3 install --no-cache-dir --break-system-packages pymysql
 
-# Fetch DB password from Secret Manager (no TF state leakage)
-DB_PASS="$(gcloud secrets versions access latest --secret="$${SECRET_NAME}")"
-
+# --- Nginx setup first; does not depend on DB secret ---
 mkdir -p /etc/nginx/certs
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout /etc/nginx/certs/self.key \
-  -out /etc/nginx/certs/self.crt \
-  -subj "/CN=nihonmachi-internal.local"
+echo "$${CERT_B64}" | base64 -d > /etc/nginx/certs/nihonmachi.crt
+echo "$${KEY_B64}" | base64 -d > /etc/nginx/certs/nihonmachi.key
+chmod 600 /etc/nginx/certs/nihonmachi.key
 
+mkdir -p /var/www/html
 cat > /var/www/html/index.html <<EOF
 <h1>Nihonmachi Clinic (Private)</h1>
 <p>Only reachable via VPN corridor.</p>
 EOF
+
+# Nginx HTTPS config - listen on 443 only (no HTTP redirect; internal private only)
+cat > /etc/nginx/sites-available/default <<EOF
+server {
+  listen 443 ssl;
+  ssl_certificate /etc/nginx/certs/nihonmachi.crt;
+  ssl_certificate_key /etc/nginx/certs/nihonmachi.key;
+
+  location /health {
+    return 200 "ok\n";
+  }
+
+  location / {
+    root /var/www/html;
+    index index.html;
+  }
+}
+EOF
+
+# Remove the default HTTP server block that ships with nginx (port 80 only, would
+# shadow the 443 block on some Debian builds)
+rm -f /etc/nginx/sites-enabled/default
+ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+systemctl enable nginx
+systemctl restart nginx
+
+# --- DB secret fetch (non-fatal; nginx is already up) ---
+# If the GCP secret does not yet exist, the script continues and nginx keeps serving.
+DB_PASS="$(gcloud secrets versions access latest --secret="$${SECRET_NAME}" 2>/dev/null || echo "")"
 
 cat > /usr/local/bin/rds_test.py <<'PY'
 import os, pymysql, json, datetime
@@ -59,27 +91,6 @@ if __name__ == "__main__":
 PY
 
 chmod +x /usr/local/bin/rds_test.py
-
-# Nginx HTTPS config
-cat > /etc/nginx/sites-available/default <<EOF
-server {
-  listen 443 ssl;
-  ssl_certificate /etc/nginx/certs/self.crt;
-  ssl_certificate_key /etc/nginx/certs/self.key;
-
-  location /health {
-    return 200 "ok\n";
-  }
-
-  location / {
-    root /var/www/html;
-    index index.html;
-  }
-}
-EOF
-
-systemctl enable nginx
-systemctl restart nginx
 
 # Export env for DB test
 cat > /etc/profile.d/tokyo_rds.sh <<EOF
