@@ -373,10 +373,10 @@ Reads the distribution ID automatically from remote state or `LAB4-DELIVERABLES/
 
 ```bash
 # From LAB4 root — invalidate everything
-bash scripts/break_glass_invalidation.sh
+bash scripts/order66.sh
 
 # Targeted paths
-bash scripts/break_glass_invalidation.sh "/images/*" "/api/*" "/index.html"
+bash scripts/order66.sh "/images/*" "/api/*" "/index.html"
 ```
 
 The script prompts for confirmation before calling:
@@ -397,7 +397,53 @@ terraform apply -var='break_glass_paths=["/images/*","/index.html"]'
 
 > **Why the script is preferred for break-glass:** It fires in seconds. Terraform requires a plan/apply cycle and a clean state lock. Use the Terraform action when you want the invalidation recorded in a deployment pipeline.
 
+### Testing order66.sh
+
+**Step 1 — Run with a targeted path** (cheaper than `/*`, same code path):
+```bash
+# From LAB4 root
+source .secrets.env
+bash scripts/order66.sh "/static/placeholder.png"
+# Type 'yes' at the prompt.
+# Output: a table with an invalidation ID and status InProgress.
+```
+
+**Step 2 — Verify the invalidation completed:**
+```bash
+aws cloudfront list-invalidations \
+  --distribution-id $(cd global && terraform output -raw cloudfront_distribution_id) \
+  --query "InvalidationList.Items[0].{Id:Id,Status:Status,CreateTime:CreateTime}" \
+  --output table
+# Status should flip from InProgress → Completed within ~30-60 seconds.
+```
+
+**Step 3 — Confirm cache was busted:**
+```bash
+CF_DOMAIN=$(cd global && terraform output -raw cloudfront_distribution_domain_name)
+curl -sI "https://${CF_DOMAIN}/static/placeholder.png" | grep -i "x-cache\|age:"
+# Expected on first hit after invalidation:
+#   X-Cache: Miss from cloudfront        ← cache was busted, origin was hit
+# Second hit re-caches the object:
+curl -sI "https://${CF_DOMAIN}/static/placeholder.png" | grep -i "x-cache\|age:"
+#   X-Cache: RefreshHit from cloudfront  ← re-cached successfully
+```
+
+> **Verified output (2026-03-10):** Invalidation `IEQGERT8FRJWC8CA3QBIZEMFX6` completed, Miss then RefreshHit confirmed on `E313MTDIOOC9AQ`.
+
+> **⚠️ Git Bash / Windows gotcha — MSYS path conversion:**
+> Git Bash automatically converts POSIX-style paths (e.g. `/static/placeholder.png`) into Windows paths
+> (e.g. `C:/Program Files/Git/static/placeholder.png`) before passing them to native Windows binaries like `aws.exe`.
+> This causes `InvalidArgument` errors from CloudFront because the path is no longer a valid invalidation path.
+>
+> **Fix:** `order66.sh` sets `MSYS_NO_PATHCONV=1` and `MSYS2_ARG_CONV_EXCL="*"` at the top of the script to
+> disable this conversion globally. **Any other script or one-liner that passes CloudFront paths (or similar
+> URL-style `/` paths) to AWS CLI from Git Bash must do the same**, or prefix the export before the command:
+> ```bash
+> MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --paths "/static/*"
+> ```
+
 ---
+
 
 ## Standard Cleanup commands:
 

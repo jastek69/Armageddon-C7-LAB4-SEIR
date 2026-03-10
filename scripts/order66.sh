@@ -2,10 +2,16 @@
 # Break-glass CloudFront cache invalidation
 #
 # Usage:
-#   bash scripts/break_glass_invalidation.sh                        # invalidates /*
-#   bash scripts/break_glass_invalidation.sh "/images/*" "/api/*"   # specific paths
+#   bash scripts/order66.sh                              # invalidates /*
+#   bash scripts/order66.sh "/static/placeholder.png"   # specific path
+#   bash scripts/order66.sh "/images/*" "/api/*"        # multiple paths
 #
 # Run from LAB4 root. Reads the distribution ID from global Terraform state.
+# Note: paths are CloudFront paths (e.g. /static/foo.png), not local filesystem paths.
+
+# Disable Git Bash POSIX path conversion — CloudFront paths start with / and must not be expanded
+export MSYS_NO_PATHCONV=1
+export MSYS2_ARG_CONV_EXCL="*"
 
 set -euo pipefail
 
@@ -27,7 +33,7 @@ fi
 if [[ -z "${DIST_ID:-}" ]]; then
   echo "ERROR: Could not resolve CloudFront distribution ID."
   echo "  Option 1: Run 'cd global && terraform output cloudfront_distribution_id' and pass it manually:"
-  echo "    DIST_ID=EXXXXXXXXXX bash scripts/break_glass_invalidation.sh"
+  echo "    DIST_ID=EXXXXXXXXXX bash scripts/order66.sh"
   exit 1
 fi
 
@@ -39,8 +45,6 @@ else
 fi
 
 QUANTITY=${#PATHS[@]}
-ITEMS_JSON=$(python3 -c "import json,sys; print(json.dumps(sys.argv[1:]))" -- "${PATHS[@]}" 2>/dev/null \
-  || /c/Python311/python.exe -c "import json,sys; print(json.dumps(sys.argv[1:]))" -- "${PATHS[@]}")
 
 CALLER_REF="break-glass-$(date +%s)"
 
@@ -53,15 +57,26 @@ echo ""
 read -r -p "Confirm invalidation? This may incur cost. Type 'yes' to proceed: " confirm </dev/tty
 [[ "$confirm" != "yes" ]] && echo "Cancelled." && exit 0
 
-aws cloudfront create-invalidation \
-  --distribution-id "${DIST_ID}" \
-  --region us-east-1 \
-  --invalidation-batch "{
-    \"Paths\": { \"Quantity\": ${QUANTITY}, \"Items\": ${ITEMS_JSON} },
-    \"CallerReference\": \"${CALLER_REF}\"
-  }" \
-  --query "Invalidation.{Id:Id,Status:Status}" \
-  --output table
+/c/Python311/python.exe - "${DIST_ID}" "${CALLER_REF}" "${PATHS[@]}" <<'PYEOF'
+import sys, json, subprocess
+dist_id   = sys.argv[1]
+caller    = sys.argv[2]
+paths     = sys.argv[3:]
+batch     = json.dumps({"Paths": {"Quantity": len(paths), "Items": paths}, "CallerReference": caller})
+tmp = "order66_tmp_batch.json"
+open(tmp, "w").write(batch)
+import os, pathlib
+win_path = str(pathlib.Path(tmp).resolve())
+result = subprocess.run(
+    ["aws", "cloudfront", "create-invalidation",
+     "--distribution-id", dist_id,
+     "--invalidation-batch", f"file://{win_path}",
+     "--query", "Invalidation.{Id:Id,Status:Status}",
+     "--output", "table"],
+    capture_output=False)
+os.remove(tmp)
+sys.exit(result.returncode)
+PYEOF
 
 echo ""
 echo "Invalidation submitted. CloudFront typically propagates within 1-2 minutes."

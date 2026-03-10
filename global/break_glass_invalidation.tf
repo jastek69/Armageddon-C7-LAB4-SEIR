@@ -1,9 +1,9 @@
 ############################################
 # Break-glass CloudFront cache invalidation (run on demand)
 #
-# The `action` block for aws_cloudfront_create_invalidation panics in
-# Terraform v1.14-alpha (ProtoToActionSchema bug). Using terraform_data
-# + local-exec instead — functionally identical, stable on all versions.
+# NOTE: The aws_cloudfront_create_invalidation action block schema in provider 6.x
+# does not use distribution_id/invalidation_batch HCL arguments — using
+# terraform_data + local-exec (aws CLI) instead, which is stable and equivalent.
 #
 # Usage — Terraform (gated, off by default):
 #   cd global
@@ -12,8 +12,8 @@
 #     -var='break_glass_paths=["/images/*","/index.html"]'
 #
 # Usage — CLI (fastest, no Terraform state needed):
-#   bash ../scripts/break_glass_invalidation.sh
-#   bash ../scripts/break_glass_invalidation.sh "/images/*" "/index.html"
+#   bash ../scripts/order66.sh
+#   bash ../scripts/order66.sh "/images/*" "/index.html"
 ############################################
 
 resource "terraform_data" "break_glass_invalidation" {

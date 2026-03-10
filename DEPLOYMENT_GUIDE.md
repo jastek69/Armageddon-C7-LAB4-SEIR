@@ -276,6 +276,31 @@ aws ec2 describe-managed-prefix-lists --region ap-northeast-1 \
 
 ## 🔧 **Management Commands**
 
+### **⚠️ Windows / Git Bash Gotchas**
+
+**MSYS POSIX path auto-conversion:**
+Git Bash (MSYS2) automatically converts POSIX-style `/` paths to Windows paths before passing them to native
+Windows binaries (e.g. `aws.exe`, `terraform.exe`). This silently corrupts CloudFront invalidation paths,
+S3 keys, and any argument starting with `/`.
+
+Symptom: `InvalidArgument: Your request contains one or more invalid invalidation paths`
+Cause: `/static/placeholder.png` → `C:/Program Files/Git/static/placeholder.png`
+
+**Fix — set these at the top of any script that passes `/`-prefixed values to AWS CLI:**
+```bash
+export MSYS_NO_PATHCONV=1
+export MSYS2_ARG_CONV_EXCL="*"
+```
+Or inline for one-off commands:
+```bash
+MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --distribution-id EXXXXX --paths "/static/*"
+```
+
+**Python path on this machine:** `/c/Python311/python.exe` (not `python3` — not in PATH)
+
+**Terraform binary:** `~/bin/terraform.exe` (1.14.6 stable, added to PATH via `.secrets.env`)
+The Chocolatey-installed version at `C:\ProgramData\chocolatey\bin\terraform.exe` is a stale alpha build.
+
 ### **Show TGW Peering Status:**
 ```bash
 # From Tokyo
@@ -390,7 +415,7 @@ Both exit `1` (DIRTY) if blocking resources remain, `0` if safe to redeploy.
 | **ALB** | Delete load balancer + target groups |
 | **Kinesis Firehose** | Delete `taaops-regional-waf-firehose` if present |
 | **KMS Keys** | 7-day minimum deletion delay — leave them, Terraform creates new ones |
-| **DynamoDB** `taaops-terraform-state-lock` | `terraform_startup.sh` bootstraps idempotently — safe to leave |
+
 
 #### 🟢 Safe to Leave Alone
 - `taaops-terraform-state-tokyo` S3 bucket — keep the bucket, only delete the `.tfstate` objects inside it

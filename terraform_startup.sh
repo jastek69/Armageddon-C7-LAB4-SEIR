@@ -2,6 +2,10 @@
 # LAB4 multi-stack Terraform deployment
 # Order: GCP seed -> Tokyo -> Global -> New York GCP -> Sao Paulo
 # Maintainer note: active stacks are in `Tokyo/`, `global/`, `newyork_gcp/`, `saopaulo/`; legacy root Terraform files are in `archive/root-terraform-from-root/`.
+# To Run:
+#   1. From LAB4 root: source .secrets.env
+#   2. From LAB4 root: bash terraform_startup.sh
+###############################################################################################################
 
 set -euo pipefail
 trap 'echo "ERROR on line $LINENO"; exit 1' ERR

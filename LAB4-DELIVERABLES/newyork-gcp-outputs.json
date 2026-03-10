@@ -2,12 +2,12 @@
   "gcp_ha_vpn_interface_0_ip": {
     "sensitive": false,
     "type": "string",
-    "value": "34.183.45.1"
+    "value": "34.128.35.241"
   },
   "gcp_ha_vpn_interface_1_ip": {
     "sensitive": false,
     "type": "string",
-    "value": "34.184.43.128"
+    "value": "34.184.16.220"
   },
   "nihonmachi_ilb_ip": {
     "sensitive": false,
