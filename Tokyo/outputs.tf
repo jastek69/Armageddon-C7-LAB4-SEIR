@@ -188,7 +188,7 @@ output "route53_zone_id" {
 
 # REGION INFORMATION
 output "tokyo_region" {
-  value       = data.aws_region.current.name
+  value       = data.aws_region.current.id
   description = "Tokyo region name"
 }
 

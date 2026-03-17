@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export AWS_PAGER=""
+export AWS_CLI_AUTO_PROMPT="off"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+TOKYO_OUTPUTS_JSON="$REPO_ROOT/LAB4-DELIVERABLES/tokyo-outputs.json"
+
 # Finds report JSON files flagged by alarm state.
 # Usage:
 #   ./scripts/filter_alarm_reports.sh
@@ -11,14 +18,36 @@ set -euo pipefail
 #   ALARM_SINCE_EPOCH=1700000000 ./scripts/filter_alarm_reports.sh
 #   ALARM_SEVERITY=critical ./scripts/filter_alarm_reports.sh
 
-REPORTS_DIR="${REPORTS_DIR:-./reports/IR}"
+REPORTS_DIR="${REPORTS_DIR:-$REPO_ROOT/tests}"
 REPORT_BUCKET="${REPORT_BUCKET:-}"
-REGION="${REGION:-us-west-2}"
+REGION="${REGION:-ap-northeast-1}"
 ALARM_STATE="${ALARM_STATE:-ALARM}"
 ALARM_NAME_REGEX="${ALARM_NAME_REGEX:-}"
 ALARM_SINCE_EPOCH="${ALARM_SINCE_EPOCH:-}"
 ALARM_UNTIL_EPOCH="${ALARM_UNTIL_EPOCH:-}"
 ALARM_SEVERITY="${ALARM_SEVERITY:-}"
+
+read_tokyo_output_json() {
+  local key="$1"
+  if [[ ! -f "$TOKYO_OUTPUTS_JSON" ]]; then
+    return 1
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    jq -r --arg k "$key" '.[$k].value // empty' "$TOKYO_OUTPUTS_JSON"
+    return 0
+  fi
+  return 1
+}
+
+resolve_report_bucket() {
+  if [[ -n "$REPORT_BUCKET" ]]; then
+    return 0
+  fi
+  REPORT_BUCKET="$(read_tokyo_output_json incident_reports_bucket_name || true)"
+  [[ -n "$REPORT_BUCKET" ]]
+}
+
+resolve_report_bucket || true
 
 if [[ -n "$REPORT_BUCKET" ]]; then
   mkdir -p "$REPORTS_DIR"

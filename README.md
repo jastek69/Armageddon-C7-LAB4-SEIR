@@ -4,12 +4,13 @@ Cross-Region Architecture with Transit Gateway (APPI-Compliant)
 This designed is a multi-region medical application where all PHI remains in Japan to comply with APPI.
   * CloudFront provided global access
   * São Paulo runs a stateless compute only, and all reads/writes traverse a Transit Gateway to Tokyo RDS.
+  * New York runs stateless compute only in GCP, all reads/writes traverse a Transit Gateway to Tokyo RDS via HA VPN BGP connections with tunnel rotation.
   * This design intentionally trades some latency for legal certainty and auditability.
 Global access does not require global storage.
 
 🎯 Lab Objective
 To design and deploy a cross-region medical application architecture that:
-  Uses two AWS regions
+  Uses two AWS regions and one GCP Zone
     Tokyo (ap-northeast-1) — data authority
     São Paulo (sa-east-1) — compute extension
   Connects regions using AWS Transit Gateway
@@ -17,11 +18,6 @@ To design and deploy a cross-region medical application architecture that:
   Stores all patient medical data (PHI) only in Japan
   Allows doctors overseas to read/write records legally
 
-This lab is a warm-up for real DevOps and platform engineering, where:
-  environments are separated
-  Terraform state is split
-  pipelines are independent
-  coordination matters more than copy-paste
 
 🏥 Real-World Context (Why This Exists)
 
@@ -76,6 +72,25 @@ It does not contain:
 
 São Paulo is stateless compute.<----> All reads and writes go directly to Tokyo.
 
+
+Iowa Zone exists to serve doctors and staff physically located in New York who prefer to use GCP.
+
+New York contains:
+    GCP Compute resources: Instance, NAT 
+    ILB  
+    Application tier (Lab 2 stack)
+    VPN BGP Peering connection to the AWS Transit Gateway
+    
+
+It does not contain:
+    RDS
+    Read replicas
+    Backups
+    Persistent storage of PHI
+    Keisha. No Keisha here.
+
+New York is stateless compute.<----> All reads and writes go directly to Tokyo.
+
 🌐 Networking Model
 Why Transit Gateway?
 Transit Gateway is used instead of VPC peering because it provides:
@@ -88,11 +103,13 @@ In regulated environments, clarity beats convenience.
 
 How Traffic Flows
 
-Doctor (São Paulo)
+Doctor (São Paulo) | (New York)
    ↓
 CloudFront (global edge)
    ↓
-São Paulo EC2 (stateless)
+São Paulo EC2 (stateless) | New York EC2 (stateless)
+   ↓
+Transit Gateway (Tokyo)
    ↓
 Transit Gateway (São Paulo)
    ↓
@@ -104,6 +121,49 @@ Tokyo VPC
    ↓
 Tokyo RDS (PHI stored here only)
 The entire path stays on the AWS backbone and is encrypted in transit.
+
+
+GCP:
+
+VPC: nihonmachi-vpc01
+│
+├── Subnet: nihonmachi-subnet01         (app traffic — compute lives here)
+│   └── MIG: nihonmachi-mig01           (2x nihonmachi-app VMs, no external IPs)
+│
+└── Subnet: nihonmachi-proxy-only-subnet01  (10.235.254.0/24)
+    └── [required by INTERNAL_MANAGED ILB — proxy traffic flows through here, not VM traffic]
+
+Internal HTTPS Load Balancer (INTERNAL_MANAGED)
+├── Forwarding Rule: nihonmachi-fr01    (IP: 10.235.1.4, port 443, on nihonmachi-subnet01)
+├── Target HTTPS Proxy: nihonmachi-httpsproxy01
+├── URL Map: nihonmachi-urlmap01
+├── Backend Service: nihonmachi-backend01  ──► MIG nihonmachi-mig01
+└── Health Check: nihonmachi-hc01       (HTTPS :443 /health)
+
+Cloud Router (NAT): nihonmachi-router01 / nihonmachi-nat01
+└── Outbound internet for VMs (OS updates, etc.) — no public IPs on VMs
+
+Cloud Router (BGP): nihonmachi-router     ◄─── VPN only, separate router
+└── ASN: var.nihonmachi_gcp_cloud_router_asn
+    └── Advertises: var.gcp_advertised_cidr → AWS
+
+HA VPN Gateway: gcp-to-aws-vpn-gw  ══════════════════► AWS Transit Gateway
+External VPN Gateway: gcp-to-aws-vpn-gw  (holds 4 AWS TGW tunnel outside IPs)
+├── Tunnel 0 → VPN1 Tunnel1
+├── Tunnel 1 → VPN1 Tunnel2
+├── Tunnel 2 → VPN2 Tunnel1
+└── Tunnel 3 → VPN2 Tunnel2
+
+nihonmachi-mig01 VMs
+        │
+   nihonmachi-router01 (NAT → internet)
+        │
+   nihonmachi-router (BGP) ◄──► 4 x VPN tunnels (tunnel00–03)
+        │
+   gcp-to-aws-vpn-gw  ══════════════════► AWS TGW
+   (HA VPN Gateway,             [4 outside IPs from AWS stored in
+    2 GCP interfaces)            google_compute_external_vpn_gateway]
+    
 
 🌐 Single Global URL
 

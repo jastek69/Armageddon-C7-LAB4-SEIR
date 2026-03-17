@@ -2,12 +2,12 @@
   "alb_arn": {
     "sensitive": false,
     "type": "string",
-    "value": "arn:aws:elasticloadbalancing:sa-east-1:015195098145:loadbalancer/app/sao-app-lb/9a35d483ffa949c8"
+    "value": "arn:aws:elasticloadbalancing:sa-east-1:015195098145:loadbalancer/app/sao-app-lb/3f3328df0186625f"
   },
   "alb_dns_name": {
     "sensitive": false,
     "type": "string",
-    "value": "sao-app-lb-889593777.sa-east-1.elb.amazonaws.com"
+    "value": "sao-app-lb-1763692704.sa-east-1.elb.amazonaws.com"
   },
   "alb_zone_id": {
     "sensitive": false,
@@ -17,7 +17,7 @@
   "asg_arn": {
     "sensitive": false,
     "type": "string",
-    "value": "arn:aws:autoscaling:sa-east-1:015195098145:autoScalingGroup:18641355-feeb-450f-9bde-38f63fef8c52:autoScalingGroupName/sao-app-asg"
+    "value": "arn:aws:autoscaling:sa-east-1:015195098145:autoScalingGroup:a2b81637-eba3-443c-aade-1a8b42c97afa:autoScalingGroupName/sao-app-asg"
   },
   "asg_name": {
     "sensitive": false,
@@ -55,9 +55,9 @@
       ]
     ],
     "value": [
-      "subnet-07da2940c3c73fe1e",
-      "subnet-096359d951f889b06",
-      "subnet-05e918f646bc98063"
+      "subnet-05f30a3187149e85d",
+      "subnet-0e72ad79e574ba989",
+      "subnet-051e4c54b21ce6390"
     ]
   },
   "public_subnet_ids": {
@@ -71,9 +71,9 @@
       ]
     ],
     "value": [
-      "subnet-00a817a0beb5b526c",
-      "subnet-027ecba8c3642fd12",
-      "subnet-0d3dee37bb72946e8"
+      "subnet-0c88d18c60f85c2cd",
+      "subnet-019884ec659252e46",
+      "subnet-08612fd9a23a9e10f"
     ]
   },
   "region": {
@@ -94,7 +94,7 @@
   "sao_s3_gateway_endpoint_id": {
     "sensitive": false,
     "type": "string",
-    "value": "vpce-0c7cd9104281d3605"
+    "value": "vpce-08d783c014e5a0164"
   },
   "sao_vpc_endpoint_dns": {
     "sensitive": false,
@@ -151,36 +151,36 @@
     ],
     "value": {
       "ec2messages": [
-        "vpce-068a4b822fa567c12-glyxzoqz.ec2messages.sa-east-1.vpce.amazonaws.com",
-        "vpce-068a4b822fa567c12-glyxzoqz-sa-east-1a.ec2messages.sa-east-1.vpce.amazonaws.com",
-        "vpce-068a4b822fa567c12-glyxzoqz-sa-east-1b.ec2messages.sa-east-1.vpce.amazonaws.com",
-        "vpce-068a4b822fa567c12-glyxzoqz-sa-east-1c.ec2messages.sa-east-1.vpce.amazonaws.com",
+        "vpce-08fe9c18e94d58a7b-v8kkoanw.ec2messages.sa-east-1.vpce.amazonaws.com",
+        "vpce-08fe9c18e94d58a7b-v8kkoanw-sa-east-1a.ec2messages.sa-east-1.vpce.amazonaws.com",
+        "vpce-08fe9c18e94d58a7b-v8kkoanw-sa-east-1b.ec2messages.sa-east-1.vpce.amazonaws.com",
+        "vpce-08fe9c18e94d58a7b-v8kkoanw-sa-east-1c.ec2messages.sa-east-1.vpce.amazonaws.com",
         "ec2messages.sa-east-1.amazonaws.com"
       ],
       "logs": [
-        "vpce-055dcf77160b29028-36b7iyig.logs.sa-east-1.vpce.amazonaws.com",
-        "vpce-055dcf77160b29028-36b7iyig-sa-east-1b.logs.sa-east-1.vpce.amazonaws.com",
-        "vpce-055dcf77160b29028-36b7iyig-sa-east-1c.logs.sa-east-1.vpce.amazonaws.com",
-        "vpce-055dcf77160b29028-36b7iyig-sa-east-1a.logs.sa-east-1.vpce.amazonaws.com",
+        "vpce-0150556ed35dac35d-ev1s6rb2.logs.sa-east-1.vpce.amazonaws.com",
+        "vpce-0150556ed35dac35d-ev1s6rb2-sa-east-1b.logs.sa-east-1.vpce.amazonaws.com",
+        "vpce-0150556ed35dac35d-ev1s6rb2-sa-east-1c.logs.sa-east-1.vpce.amazonaws.com",
+        "vpce-0150556ed35dac35d-ev1s6rb2-sa-east-1a.logs.sa-east-1.vpce.amazonaws.com",
         "logs.sa-east-1.amazonaws.com",
         "streaming-logs.sa-east-1.amazonaws.com",
         "logs.sa-east-1.api.aws",
         "streaming-logs.sa-east-1.api.aws"
       ],
       "ssm": [
-        "vpce-067cf7e2392e530df-2h5r4udv.ssm.sa-east-1.vpce.amazonaws.com",
-        "vpce-067cf7e2392e530df-2h5r4udv-sa-east-1b.ssm.sa-east-1.vpce.amazonaws.com",
-        "vpce-067cf7e2392e530df-2h5r4udv-sa-east-1c.ssm.sa-east-1.vpce.amazonaws.com",
-        "vpce-067cf7e2392e530df-2h5r4udv-sa-east-1a.ssm.sa-east-1.vpce.amazonaws.com",
+        "vpce-0b81ddcf637bf8270-p35z47tq.ssm.sa-east-1.vpce.amazonaws.com",
+        "vpce-0b81ddcf637bf8270-p35z47tq-sa-east-1b.ssm.sa-east-1.vpce.amazonaws.com",
+        "vpce-0b81ddcf637bf8270-p35z47tq-sa-east-1c.ssm.sa-east-1.vpce.amazonaws.com",
+        "vpce-0b81ddcf637bf8270-p35z47tq-sa-east-1a.ssm.sa-east-1.vpce.amazonaws.com",
         "ssm.sa-east-1.amazonaws.com",
         "ssm-facade.sa-east-1.amazonaws.com",
         "ssm.sa-east-1.api.aws"
       ],
       "ssmmessages": [
-        "vpce-0a93bb1bead982b9e-8qnzlu4o.ssmmessages.sa-east-1.vpce.amazonaws.com",
-        "vpce-0a93bb1bead982b9e-8qnzlu4o-sa-east-1c.ssmmessages.sa-east-1.vpce.amazonaws.com",
-        "vpce-0a93bb1bead982b9e-8qnzlu4o-sa-east-1b.ssmmessages.sa-east-1.vpce.amazonaws.com",
-        "vpce-0a93bb1bead982b9e-8qnzlu4o-sa-east-1a.ssmmessages.sa-east-1.vpce.amazonaws.com",
+        "vpce-0e101e85085feaf71-wihrtzpr.ssmmessages.sa-east-1.vpce.amazonaws.com",
+        "vpce-0e101e85085feaf71-wihrtzpr-sa-east-1c.ssmmessages.sa-east-1.vpce.amazonaws.com",
+        "vpce-0e101e85085feaf71-wihrtzpr-sa-east-1a.ssmmessages.sa-east-1.vpce.amazonaws.com",
+        "vpce-0e101e85085feaf71-wihrtzpr-sa-east-1b.ssmmessages.sa-east-1.vpce.amazonaws.com",
         "ssmmessages.sa-east-1.amazonaws.com",
         "ssmmessages.sa-east-1.api.aws"
       ]
@@ -198,16 +198,16 @@
       }
     ],
     "value": {
-      "ec2messages": "vpce-068a4b822fa567c12",
-      "logs": "vpce-055dcf77160b29028",
-      "ssm": "vpce-067cf7e2392e530df",
-      "ssmmessages": "vpce-0a93bb1bead982b9e"
+      "ec2messages": "vpce-08fe9c18e94d58a7b",
+      "logs": "vpce-0150556ed35dac35d",
+      "ssm": "vpce-0b81ddcf637bf8270",
+      "ssmmessages": "vpce-0e101e85085feaf71"
     }
   },
   "saopaulo_transit_gateway_id": {
     "sensitive": false,
     "type": "string",
-    "value": "tgw-06b34c5c757697be8"
+    "value": "tgw-07b44788ae23510ca"
   },
   "sns_topic_alerts_arn": {
     "sensitive": false,
@@ -217,7 +217,7 @@
   "transit_gateway_arn": {
     "sensitive": false,
     "type": "string",
-    "value": "arn:aws:ec2:sa-east-1:015195098145:transit-gateway/tgw-06b34c5c757697be8"
+    "value": "arn:aws:ec2:sa-east-1:015195098145:transit-gateway/tgw-07b44788ae23510ca"
   },
   "vpc_cidr": {
     "sensitive": false,
@@ -227,6 +227,6 @@
   "vpc_id": {
     "sensitive": false,
     "type": "string",
-    "value": "vpc-03bb812f0d36f6725"
+    "value": "vpc-0160e0db00fa89937"
   }
 }

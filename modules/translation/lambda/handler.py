@@ -19,6 +19,46 @@ OUTPUT_BUCKET = os.environ['OUTPUT_BUCKET']
 REPORTS_BUCKET = os.environ['REPORTS_BUCKET']
 AWS_REGION = os.environ['AWS_REGION']
 
+def looks_machine_value(text):
+    """Return True for IDs/ARNs/IPs/URLs that should not be translated."""
+    if not isinstance(text, str):
+        return True
+    t = text.strip()
+    if not t:
+        return True
+
+    prefixes = ('arn:aws:', 'http://', 'https://', 'sg-', 'subnet-', 'vpc-', 'tgw-', 'vpce-')
+    if t.lower().startswith(prefixes):
+        return True
+    if '/' in t and all(part.isdigit() for part in t.split('/')[-1:]):
+        return True
+    if t.count('.') >= 3 and all(p.isdigit() for p in t.split('.') if p.isdigit()):
+        return True
+    if len(t) >= 8 and t.replace('-', '').replace('_', '').isalnum() and t.upper() == t:
+        return True
+    return False
+
+def translate_json_value(value):
+    """Translate JSON recursively while preserving schema validity."""
+    if isinstance(value, dict):
+        return {k: translate_json_value(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [translate_json_value(v) for v in value]
+    if isinstance(value, str):
+        if looks_machine_value(value) or len(value.strip()) < 2:
+            return value
+        try:
+            resp = translate_client.translate_text(
+                Text=value,
+                SourceLanguageCode='auto',
+                TargetLanguageCode='ja'
+            )
+            return resp.get('TranslatedText', value)
+        except Exception as translation_error:
+            logger.warning(f"JSON string translation failed, keeping original: {str(translation_error)}")
+            return value
+    return value
+
 def lambda_handler(event, context):
     """
     Enhanced Lambda function for incident report translation workflow:
@@ -47,12 +87,21 @@ def lambda_handler(event, context):
                 # Determine if this is a text file or binary
                 content_type = response.get('ContentType', 'text/plain')
                 
-                if content_type.startswith('text/') or object_key.endswith(('.txt', '.md', '.json')):
+                if content_type.startswith('text/') or content_type == 'application/json' or object_key.endswith(('.txt', '.md', '.json')):
                     # Text file - can translate
                     original_text = file_content.decode('utf-8')
-                    
-                    # Detect source language and translate
-                    translated_content = translate_document(original_text, object_key)
+
+                    # JSON files use structure-aware translation to avoid invalid JSON output.
+                    is_json = content_type == 'application/json' or object_key.lower().endswith('.json')
+                    if is_json:
+                        json_payload = json.loads(original_text)
+                        translated_json = translate_json_value(json_payload)
+                        translated_content = json.dumps(translated_json, ensure_ascii=False, indent=2) + '\n'
+                        output_content_type = 'application/json; charset=utf-8'
+                    else:
+                        # Detect source language and translate document text.
+                        translated_content = translate_document(original_text, object_key)
+                        output_content_type = 'text/plain; charset=utf-8'
                     
                     # Generate output filenames
                     base_name, extension = os.path.splitext(object_key)
@@ -64,7 +113,7 @@ def lambda_handler(event, context):
                         Bucket=OUTPUT_BUCKET,
                         Key=translated_key,
                         Body=translated_content.encode('utf-8'),
-                        ContentType='text/plain; charset=utf-8',
+                        ContentType=output_content_type,
                         Metadata={
                             'original-file': object_key,
                             'translation-timestamp': timestamp,
@@ -73,7 +122,7 @@ def lambda_handler(event, context):
                     )
                     
                     # Copy both versions to reports directory
-                    copy_to_reports_directory(object_key, original_text, translated_content, timestamp)
+                    copy_to_reports_directory(object_key, original_text, translated_content, timestamp, output_content_type)
                     
                     logger.info(f"Successfully processed translation for: {object_key}")
                     
@@ -202,7 +251,7 @@ def split_text_into_chunks(text, max_size):
         
     return chunks
 
-def copy_to_reports_directory(original_key, original_content, translated_content, timestamp):
+def copy_to_reports_directory(original_key, original_content, translated_content, timestamp, content_type='text/plain; charset=utf-8'):
     """
     Copy both English and Japanese versions to the /reports directory
     """
@@ -231,7 +280,7 @@ def copy_to_reports_directory(original_key, original_content, translated_content
             Bucket=REPORTS_BUCKET,
             Key=english_filename,
             Body=english_content.encode('utf-8'),
-            ContentType='text/plain; charset=utf-8',
+            ContentType=content_type,
             Metadata={
                 'language': 'english',
                 'translation-timestamp': timestamp,
@@ -243,7 +292,7 @@ def copy_to_reports_directory(original_key, original_content, translated_content
             Bucket=REPORTS_BUCKET,
             Key=japanese_filename,
             Body=japanese_content.encode('utf-8'),
-            ContentType='text/plain; charset=utf-8',
+            ContentType=content_type,
             Metadata={
                 'language': 'japanese',
                 'translation-timestamp': timestamp,

@@ -100,6 +100,9 @@ newyork_gcp/taaops-e9943412868a.json
 lambda/alarm_hook.zip
 lambda/ir_reporter.zip
 
+# Archive directory (one-off debug scripts, not part of deployable code)
+archive/
+
 # Codex skills (local only)
 .codex/
 *.skill
@@ -113,3 +116,15 @@ SkillBuilder/
 # Allow files to override negated patterns
 # Remove hash symbol to enable
 # !example.json
+
+# Python cache/build artifacts
+python/__pycache__/
+**/__pycache__/
+
+# Generated translation outputs (local test artifacts)
+tests/localized/
+LAB4-DELIVERABLES/localized/*.json
+
+# Generated sanity snapshots
+tests/sanity_check_*.jsonl
+tests/sanity_check_*.md

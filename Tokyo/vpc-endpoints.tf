@@ -29,7 +29,7 @@ resource "aws_security_group" "tokyo_endpoints_sg" {
 
 resource "aws_vpc_endpoint" "ssm" {
   vpc_id              = aws_vpc.shinjuku_vpc01.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ssm"
+  service_name        = "com.amazonaws.${data.aws_region.current.id}.ssm"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
@@ -48,7 +48,7 @@ resource "aws_vpc_endpoint" "ssm" {
 
 resource "aws_vpc_endpoint" "ec2messages" {
   vpc_id              = aws_vpc.shinjuku_vpc01.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ec2messages"
+  service_name        = "com.amazonaws.${data.aws_region.current.id}.ec2messages"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
@@ -67,7 +67,7 @@ resource "aws_vpc_endpoint" "ec2messages" {
 
 resource "aws_vpc_endpoint" "ssmmessages" {
   vpc_id              = aws_vpc.shinjuku_vpc01.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ssmmessages"
+  service_name        = "com.amazonaws.${data.aws_region.current.id}.ssmmessages"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
@@ -86,7 +86,7 @@ resource "aws_vpc_endpoint" "ssmmessages" {
 
 resource "aws_vpc_endpoint" "tokyo_logs" {
   vpc_id              = aws_vpc.shinjuku_vpc01.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
+  service_name        = "com.amazonaws.${data.aws_region.current.id}.logs"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
@@ -106,7 +106,7 @@ resource "aws_vpc_endpoint" "tokyo_logs" {
 # S3 Gateway endpoint (private route table)
 resource "aws_vpc_endpoint" "s3_gateway" {
   vpc_id            = aws_vpc.shinjuku_vpc01.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  service_name      = "com.amazonaws.${data.aws_region.current.id}.s3"
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = [

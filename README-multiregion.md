@@ -102,6 +102,49 @@ São Paulo App Servers → São Paulo TGW → TGW Peering → Tokyo TGW → Toky
 4. Update backend configurations with actual bucket names
 
 ### Deployment Run process:
+
+### **Step 3: Deploy with Wrapper Script (Recommended)**
+Run from `<project>` root:
+
+
+Load secrets and run the startup script:
+```bash
+# From LAB4 root
+source .secrets.env          # loads PSKs + fetches db_password from Secrets Manager
+bash ./terraform_startup.sh  # GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo
+```
+
+`terraform_startup.sh` will abort immediately if any required `TF_VAR_*` is unset.
+
+**Full destroy + redeploy cycle:**
+```bash
+source .secrets.env
+bash terraform_destroy.sh    # type DESTROY when prompted; order: global -> newyork_gcp -> saopaulo -> Tokyo
+source .secrets.env          # re-source after destroy (shell may have been closed)
+bash terraform_startup.sh    # fully automated after secrets are sourced
+
+
+Windows Line Endings Fix (if scripts fail with /usr/bin/env)
+```bash
+sed -i 's/\r$//' terraform_startup.sh terraform_apply.sh
+```
+
+Notes:
+- This repo's apply wrapper is `terraform_startup.sh` (same role as `terraform_apply.sh`).
+- Deployment order is `Tokyo -> global -> saopaulo`.
+- `force_destroy` in [Tokyo/terraform.tfvars](Tokyo/terraform.tfvars) is currently `true` to allow S3 cleanup during destroy; set to `false` for production.
+
+### **Step 4: Manual Deployment (Alternative)**
+
+```bash
+(cd Tokyo && terraform init -upgrade && terraform plan && terraform apply)
+(cd global && terraform init -upgrade && terraform plan && terraform apply)
+(cd saopaulo && terraform init -upgrade && terraform plan && terraform apply)
+```
+
+
+
+### Manul Process
 1. terraform init -reconfigure (on redeploys) in each stack: global, Tokyo, saopaulo, newyork_gcp
 2. Ensure S3 lockfile locking is enabled (`use_lockfile = true`) and re-init each stack if backends changed.
 3. For the custom Secrets Manager + rotation flow, set an initial password before running `terraform_startup.sh` (rotation will take over later).

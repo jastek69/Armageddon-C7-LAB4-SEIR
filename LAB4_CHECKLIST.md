@@ -353,14 +353,33 @@ Without a TGW ENI in AZ-c, return traffic from GCP could not be delivered to the
 6. **Rotation discipline**: PSK rotation requires a coordinated two-step update: first update the PSK in AWS VPN tunnel configuration and GCP VPN tunnel configuration atomically, then update `TF_VAR_psk_tunnel_*` and re-run `terraform apply` to sync state. Rotation should occur on a schedule (≥ annually) or immediately upon any suspected compromise.
 
 ## Additional requirements
-- [ ] Translation of logs from English to Japanese
-- [X] DynamoDB lock table `taaops-terraform-state-lock` ACTIVE in ap-northeast-1 and sa-east-1; all 4 backends wired to it via `dynamodb_table` (Tokyo, global, newyork_gcp → ap-northeast-1 table; São Paulo → sa-east-1 table)
+- [X] Translation of logs from English to Japanese
+
+Run this command in order to trigger the conversion:
+```bash
+/c/Python311/python.exe python/translate_batch_audit.py --input-bucket taaops-translate-input --output-bucket taaops-translate-output --source-dir LAB4-DELIVERABLES --glob "*.json" --key-prefix lab4-deliverables --region ap-northeast-1
+```
+
+Translation explanation:
+
+Flow: Finds all LAB4-DELIVERABLES/*.json → uploads each to S3 input bucket → Lambda translates → polls output bucket → downloads as -jpn suffix files to localized  
+
+command |	Explanation
+/c/Python311/python.exe |	Full path to Python 3.11 executable on Windows (C: drive mapped to /c/)
+translate_batch_audit.py |	The batch translation driver script — processes multiple files and delegates to translate_via_s3.py per file
+--input-bucket taaops-translate-input |	S3 bucket where files are uploaded for Lambda to process
+--output-bucket taaops-translate-output |	S3 bucket where Lambda stores translated results
+--source-dir LAB4-DELIVERABLES	| Local directory containing the source files to translate
+--glob "*.json"	 | File pattern — match all .json files in LAB4-DELIVERABLES
+--key-prefix lab4-deliverables	| S3 key path prefix — uploaded files go to s3://taaops-translate-input/lab4-deliverables/*
+--region ap-northeast-1 |	AWS region (Tokyo) where the translation Lambda and S3 buckets are located
+
 
 ## Restrictions reminders
-- [ ] No databases in GCP
-- [ ] No PHI in logs
-- [ ] Only private access over VPN corridor
-- [ ] Passwords/secrets must not be hardcoded in TF or Git
+- [X] No databases in GCP
+- [X] No PHI in logs
+- [X] Only private access over VPN corridor
+- [X] Passwords/secrets must not be hardcoded in TF or Git
 
 
 ## Break-Glass CloudFront Cache Invalidation
@@ -418,6 +437,13 @@ aws cloudfront list-invalidations \
 ```
 
 **Step 3 — Confirm cache was busted:**
+
+Test:
+The test was run against the static image as opposed to index.html. Inside the user data the image has a stable mtime (touch -t 202602070000) specifically designated "for cache tests"
+It's a deterministic binary asset — a cache hit vs miss is unambiguous (check Content-Length and x-cache).
+/index.html is generated dynamically by Flask, so CloudFront may not cache it at all depending on the cache behavior settings (e.g. dynamic responses with Cache-Control: no-cache won't be cached)
+
+
 ```bash
 CF_DOMAIN=$(cd global && terraform output -raw cloudfront_distribution_domain_name)
 curl -sI "https://${CF_DOMAIN}/static/placeholder.png" | grep -i "x-cache\|age:"

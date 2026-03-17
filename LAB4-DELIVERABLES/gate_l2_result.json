@@ -1,0 +1,57 @@
+{
+  "schema_version": "2.0",
+  "gate": "lab2_all_gates",
+  "timestamp_utc": "2026-03-16T16:05:27Z",
+  "badge": "GREEN",
+  "status": "PASS",
+  "exit_code": 0,
+
+  "inputs": {
+    "origin_region": "ap-northeast-1",
+    "cloudfront_distribution_id": "ENP720UZH7L0G",
+    "domain_name": "jastek.click",
+    "route53_zone_id": "Z0226086O3FCYG2A1C50",
+    "acm_cert_arn": "arn:aws:acm:us-east-1:015195098145:certificate/30f5d57d-6e2b-4bf5-b4b9-80e9eba6c6ff",
+    "waf_web_acl_arn": "arn:aws:wafv2:us-east-1:015195098145:global/webacl/taaops-cf-waf01/64a61de7-08e6-460b-8263-8f859b8cfc21",
+    "log_bucket": "taaops-cloudfront-logs-015195098145",
+    "origin_sg_id": "sg-027377e70a2953c92",
+    "app_ports": "443,80"
+  },
+
+  "observed": {
+    "caller_arn": "arn:aws:iam::015195098145:user/AWSCLI",
+    "cloudfront_domain": "di169d5rywa8.cloudfront.net",
+    "cloudfront_status": "Deployed",
+    "cloudfront_enabled": "True",
+    "cloudfront_aliases": "jastek.click\tapp.jastek.click",
+    "viewer_cert_source": "acm",
+    "viewer_acm_arn": "arn:aws:acm:us-east-1:015195098145:certificate/30f5d57d-6e2b-4bf5-b4b9-80e9eba6c6ff",
+    "minimum_tls": "TLSv1.2_2021",
+    "logging_bucket": "taaops-cloudfront-logs-015195098145.s3.amazonaws.com",
+    "cache_policy_id": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+  },
+
+  "rollup": {
+    "details": [
+"PASS: AWS credentials OK (caller=arn:aws:iam::015195098145:user/AWSCLI).\nPASS: CloudFront distribution retrieved (ID=ENP720UZH7L0G).\nPASS: CloudFront Enabled=True.\nPASS: CloudFront Status=Deployed.\nPASS: CloudFront aliases include domain (jastek.click).\nPASS: CloudFront uses ACM certificate (ACM ARN present).\nPASS: Minimum TLS includes TLSv1.2 (MinimumProtocolVersion=TLSv1.2_2021).\nPASS: ACM certificate is ISSUED (us-east-1).\nPASS: ACM cert covers domain (jastek.click).\nPASS: WAF WebACL is associated with CloudFront.\nPASS: WAF contains managed rule group(s) (count=1).\nPASS: Route53 record sets retrieved (zone=Z0226086O3FCYG2A1C50).\nPASS: Route53 A alias points to CloudFront (di169d5rywa8.cloudfront.net).\nPASS: Route53 A alias HostedZoneId is CloudFront (Z2FDTNDATAQYW2).\nPASS: Route53 AAAA alias points to CloudFront (di169d5rywa8.cloudfront.net).\nPASS: Route53 AAAA alias HostedZoneId is CloudFront (Z2FDTNDATAQYW2).\nPASS: CloudFront logging appears enabled (bucket=taaops-cloudfront-logs-015195098145.s3.amazonaws.com).\nPASS: CloudFront logs bucket matches expected (taaops-cloudfront-logs-015195098145).\nPASS: Log bucket exists (taaops-cloudfront-logs-015195098145).\nPASS: Log bucket has PublicAccessBlock configuration.\nPASS: Origin SG exists (sg-027377e70a2953c92).\nPASS: Origin SG sg-027377e70a2953c92 is not world-open on port 443.\nPASS: Origin SG sg-027377e70a2953c92 allows prefix list(s) on port 443 (pl-58a04531).\nPASS: Origin SG sg-027377e70a2953c92 is not world-open on port 80.\nPASS: Origin SG sg-027377e70a2953c92 allows prefix list(s) on port 80 (pl-58a04531).\nPASS: DefaultCacheBehavior uses CachePolicyId (modern caching config)."],
+    "warnings": [],
+    "failures": []
+  },
+
+  "clocks": {
+    "first_seen_utc": "",
+    "last_seen_utc": "2026-03-16T16:03:46Z"
+  },
+  "sla": {
+    "target_hours": 24,
+    "due_utc": "",
+    "breached": false,
+    "age_seconds": "",
+    "remaining_seconds": ""
+  },
+
+  "artifacts": {
+    "badge_txt": "badge.txt",
+    "pr_comment_md": "pr_comment.md"
+  }
+}

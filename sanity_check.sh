@@ -1,22 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export AWS_PAGER=""
+export AWS_CLI_AUTO_PROMPT="off"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$SCRIPT_DIR"
+TOKYO_OUTPUTS_JSON="$REPO_ROOT/LAB4-DELIVERABLES/tokyo-outputs.json"
+TOKYO_TF_DIR="$REPO_ROOT/Tokyo"
+
 # Override with env vars if needed.
-REGION="${REGION:-us-west-2}"
+REGION="${REGION:-ap-northeast-1}"
 INSTANCE_ID="${INSTANCE_ID:-}"
 SECRET_ID="${SECRET_ID:-}"
 RUN_REMOTE_CHECKS="${RUN_REMOTE_CHECKS:-false}"
 RUN_OPTIONAL_GUARDS="${RUN_OPTIONAL_GUARDS:-false}"
 RUN_INFO_CHECKS="${RUN_INFO_CHECKS:-false}"
 RUN_POST_APPLY_CHECKS="${RUN_POST_APPLY_CHECKS:-false}"
-INSTANCE_NAME_TAG="${INSTANCE_NAME_TAG:-taaops-armageddon-lab1-public-ec2}"
+INSTANCE_NAME_TAG="${INSTANCE_NAME_TAG:-taaops-armageddon-lab4-public-ec2}"
 DB_ID="${DB_ID:-}"
 VPC_ID="${VPC_ID:-}"
 RDS_SG_NAME="${RDS_SG_NAME:-}"
 RDS_SG_DB_ID="${RDS_SG_DB_ID:-}"
 SECRETS_WARNING_ID="${SECRETS_WARNING_ID:-}"
 WRITE_REPORT="${WRITE_REPORT:-true}"
-REPORT_DIR="${REPORT_DIR:-LAB1-DELIVERABLES}"
+REPORT_DIR="${REPORT_DIR:-tests}"
 REPORT_BASENAME="${REPORT_BASENAME:-sanity_check}"
 REPORT_TS="${REPORT_TS:-$(date -u +%Y%m%d_%H%M%SZ)}"
 REPORT_LOG="${REPORT_LOG:-$REPORT_DIR/${REPORT_BASENAME}_${REPORT_TS}.log}"
@@ -53,29 +61,93 @@ is_ec2_instance() {
   [[ "$iid" == i-* ]]
 }
 
+read_tokyo_output_json() {
+  local key="$1"
+  if [[ ! -f "$TOKYO_OUTPUTS_JSON" ]]; then
+    return 1
+  fi
+
+  if command -v jq >/dev/null 2>&1; then
+    jq -r --arg k "$key" '.[$k].value // empty' "$TOKYO_OUTPUTS_JSON"
+    return 0
+  fi
+
+  local json_path="$TOKYO_OUTPUTS_JSON"
+  if command -v cygpath >/dev/null 2>&1; then
+    json_path="$(cygpath -w "$TOKYO_OUTPUTS_JSON")"
+  fi
+
+  if command -v /c/Python311/python.exe >/dev/null 2>&1; then
+    /c/Python311/python.exe - <<PY
+import json
+from pathlib import Path
+
+path = Path(r"$json_path")
+key = "$key"
+try:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    val = data.get(key, {}).get("value", "")
+    if isinstance(val, str):
+        print(val)
+except Exception:
+    pass
+PY
+    return 0
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - <<PY
+import json
+from pathlib import Path
+
+path = Path(r"$json_path")
+key = "$key"
+try:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    val = data.get(key, {}).get("value", "")
+    if isinstance(val, str):
+        print(val)
+except Exception:
+    pass
+PY
+    return 0
+  fi
+
+  return 1
+}
+
 auto_discover_secret() {
-  if command -v terraform >/dev/null 2>&1; then
+  local json_arn
+  json_arn="$(read_tokyo_output_json database_secret_arn || true)"
+  json_arn="$(echo "$json_arn" | grep -E '^arn:aws:secretsmanager:' | head -n1 || true)"
+  if [[ -n "$json_arn" ]]; then
+    echo "$json_arn"
+    return 0
+  fi
+
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
     local arn
-    arn="$(terraform output -raw secrets_manager_db_secret_arn 2>/dev/null || true)"
+    arn="$(terraform -chdir="$TOKYO_TF_DIR" output -raw secrets_manager_db_secret_arn 2>/dev/null || true)"
     if [[ -z "$arn" || "$arn" == "None" ]]; then
-      arn="$(terraform output -raw db_secret_arn 2>/dev/null || true)"
+      arn="$(terraform -chdir="$TOKYO_TF_DIR" output -raw db_secret_arn 2>/dev/null || true)"
     fi
+    # Guard against terraform warning text being captured as value.
+    arn="$(echo "$arn" | grep -E '^arn:aws:secretsmanager:' | head -n1 || true)"
     if [[ -n "$arn" && "$arn" != "None" ]]; then
       echo "$arn"
       return 0
     fi
-    return 1
   fi
   return 1
 }
 
 auto_discover_db_id_from_tf() {
-  if command -v terraform >/dev/null 2>&1; then
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
     local py_cmd="python3"
     if ! command -v python3 >/dev/null 2>&1; then
       py_cmd="py -3"
     fi
-    terraform output -json db_cluster_id 2>/dev/null | $py_cmd - <<'PY' || true
+    terraform -chdir="$TOKYO_TF_DIR" output -json db_cluster_id 2>/dev/null | $py_cmd - <<'PY' || true
 import json,sys
 try:
     data=json.load(sys.stdin)
@@ -89,33 +161,51 @@ PY
   return 1
 }
 
+auto_discover_db_id_from_json() {
+  local cluster_endpoint
+  cluster_endpoint="$(read_tokyo_output_json database_endpoint || true)"
+  if [[ -z "$cluster_endpoint" || "$cluster_endpoint" == "None" ]]; then
+    return 1
+  fi
+  aws rds describe-db-clusters \
+    --region "$REGION" \
+    --query "DBClusters[?Endpoint=='$cluster_endpoint'].DBClusterMembers[0].DBInstanceIdentifier" \
+    --output text 2>/dev/null
+}
+
 auto_discover_db_endpoint_from_tf() {
-  if command -v terraform >/dev/null 2>&1; then
-    terraform output -raw db_endpoint 2>/dev/null || true
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
+    terraform -chdir="$TOKYO_TF_DIR" output -raw db_endpoint 2>/dev/null || true
     return 0
   fi
   return 1
 }
 
 auto_discover_secret_arn_from_tf() {
-  if command -v terraform >/dev/null 2>&1; then
-    terraform output -raw secrets_manager_db_secret_arn 2>/dev/null || true
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
+    terraform -chdir="$TOKYO_TF_DIR" output -raw secrets_manager_db_secret_arn 2>/dev/null || true
     return 0
   fi
   return 1
 }
 
 auto_discover_vpc_id_from_tf() {
-  if command -v terraform >/dev/null 2>&1; then
-    terraform output -raw vpc_id 2>/dev/null || true
+  local vpc_id
+  vpc_id="$(read_tokyo_output_json tokyo_vpc_id || true)"
+  if [[ -n "$vpc_id" && "$vpc_id" != "None" ]]; then
+    echo "$vpc_id"
+    return 0
+  fi
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
+    terraform -chdir="$TOKYO_TF_DIR" output -raw vpc_id 2>/dev/null || true
     return 0
   fi
   return 1
 }
 
 auto_discover_rds_sg_name_from_tf() {
-  if command -v terraform >/dev/null 2>&1; then
-    terraform output -raw rds_security_group_name 2>/dev/null || true
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
+    terraform -chdir="$TOKYO_TF_DIR" output -raw rds_security_group_name 2>/dev/null || true
     return 0
   fi
   return 1
@@ -155,19 +245,63 @@ auto_discover_rds_sg_name_from_db() {
 }
 
 auto_discover_target_group_arn() {
-  if command -v terraform >/dev/null 2>&1; then
-    terraform output -raw alb_target_group_arn 2>/dev/null || true
+  local tg_arn
+  tg_arn="$(read_tokyo_output_json tokyo_alb_tg_arn || true)"
+  if [[ -n "$tg_arn" && "$tg_arn" != "None" ]]; then
+    echo "$tg_arn"
     return 0
+  fi
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
+    local tg_arn
+    tg_arn="$(terraform -chdir="$TOKYO_TF_DIR" output -raw alb_target_group_arn 2>/dev/null || true)"
+    if [[ -n "$tg_arn" && "$tg_arn" != "None" ]]; then
+      echo "$tg_arn"
+      return 0
+    fi
   fi
   return 1
 }
 
 auto_discover_alb_dns() {
-  if command -v terraform >/dev/null 2>&1; then
-    terraform output -raw taaops-lb_dns_name 2>/dev/null || true
+  local alb_dns
+  alb_dns="$(read_tokyo_output_json tokyo_alb_dns_name || true)"
+  if [[ -n "$alb_dns" && "$alb_dns" != "None" ]]; then
+    echo "$alb_dns"
     return 0
   fi
+  if command -v terraform >/dev/null 2>&1 && [[ -d "$TOKYO_TF_DIR" ]]; then
+    local alb_dns
+    alb_dns="$(terraform -chdir="$TOKYO_TF_DIR" output -raw taaops-lb_dns_name 2>/dev/null || true)"
+    if [[ -n "$alb_dns" && "$alb_dns" != "None" ]]; then
+      echo "$alb_dns"
+      return 0
+    fi
+  fi
   return 1
+}
+
+auto_discover_instance_id_from_target_group() {
+  local tg_arn="$1"
+  if [[ -z "$tg_arn" || "$tg_arn" == "None" ]]; then
+    return 1
+  fi
+  aws elbv2 describe-target-health \
+    --region "$REGION" \
+    --target-group-arn "$tg_arn" \
+    --query 'TargetHealthDescriptions[0].Target.Id' \
+    --output text 2>/dev/null
+}
+
+auto_discover_instance_id_from_vpc() {
+  local vpc_id="$1"
+  if [[ -z "$vpc_id" || "$vpc_id" == "None" ]]; then
+    return 1
+  fi
+  aws ec2 describe-instances \
+    --region "$REGION" \
+    --filters "Name=vpc-id,Values=$vpc_id" "Name=instance-state-name,Values=running" \
+    --query 'Reservations[0].Instances[0].InstanceId' \
+    --output text 2>/dev/null
 }
 
 report_written=false
@@ -304,13 +438,27 @@ if [[ -z "$INSTANCE_ID" ]]; then
     --query "AutoScalingGroups[0].Instances[0].InstanceId" \
     --output text 2>/dev/null)"
   if [[ -z "$INSTANCE_ID" || "$INSTANCE_ID" == "None" ]]; then
-    fail "could not auto-discover instance ID from ASG ($ASG_NAME)"
+    if [[ -z "$TARGET_GROUP_ARN" || "$TARGET_GROUP_ARN" == "None" ]]; then
+      TARGET_GROUP_ARN="$(auto_discover_target_group_arn || true)"
+    fi
+    INSTANCE_ID="$(auto_discover_instance_id_from_target_group "$TARGET_GROUP_ARN" || true)"
+  fi
+  if [[ -z "$INSTANCE_ID" || "$INSTANCE_ID" == "None" ]]; then
+    local_vpc_id="${VPC_ID:-}"
+    if [[ -z "$local_vpc_id" || "$local_vpc_id" == "None" ]]; then
+      local_vpc_id="$(read_tokyo_output_json tokyo_vpc_id || true)"
+    fi
+    INSTANCE_ID="$(auto_discover_instance_id_from_vpc "$local_vpc_id" || true)"
+  fi
+  if [[ -z "$INSTANCE_ID" || "$INSTANCE_ID" == "None" ]]; then
+    fail "could not auto-discover instance ID from ASG ($ASG_NAME), target group, or Tokyo VPC"
   fi
   echo "INFO: auto-discovered instance ID = $INSTANCE_ID"
 fi
 
 if [[ -z "$DB_ID" || "$DB_ID" == "None" ]]; then
   DB_ID="$(auto_discover_db_id_from_tf)"
+  [[ -z "$DB_ID" || "$DB_ID" == "None" ]] && DB_ID="$(auto_discover_db_id_from_json)"
   [[ -z "$DB_ID" || "$DB_ID" == "None" ]] && DB_ID="$(auto_discover_db_id)"
   [[ -n "$DB_ID" && "$DB_ID" != "None" ]] && echo "INFO: auto-discovered DB ID = $DB_ID"
 fi

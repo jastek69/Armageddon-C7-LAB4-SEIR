@@ -28,14 +28,15 @@ set -euo pipefail
 
 # ---------- Defaults (override via env) ----------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/output}"
-REGION="${REGION:-us-west-2}"
-INSTANCE_ID="${INSTANCE_ID:-i-0cff400cc4f896081}"
-DB_ID="${DB_ID:-taaops-rds}"                   # RDS DBInstanceIdentifier
+REGION="${REGION:-ap-northeast-1}"
+INSTANCE_ID="${INSTANCE_ID:-}"
+DB_ID="${DB_ID:-}"                   # RDS DBInstanceIdentifier
 DB_PORT="${DB_PORT:-3306}"               # optional override
 OUT_JSON="${OUT_JSON:-$OUTPUT_DIR/gate_network_db.json}"
 WRITE_GATE_LOG="${WRITE_GATE_LOG:-true}"
-GATE_LOG_DIR="${GATE_LOG_DIR:-LAB1-DELIVERABLES}"
+GATE_LOG_DIR="${GATE_LOG_DIR:-$REPO_ROOT/LAB4-DELIVERABLES}"
 GATE_LOG_FILE="${GATE_LOG_FILE:-$GATE_LOG_DIR/gate_checks.log}"
 
 CHECK_PRIVATE_SUBNETS="${CHECK_PRIVATE_SUBNETS:-true}"  # true/false
@@ -60,10 +61,10 @@ add_failure() { failures+=("$1"); }
 usage() {
   cat <<EOF
 Usage:
-  REGION=us-west-2 INSTANCE_ID=i-0cff400cc4f896081 DB_ID=taaops-rds ./gate_network_db.sh
+  REGION=ap-northeast-1 INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DB_ID=taaops-aurora-... ./gate_network_db.sh
 
 Required env vars:
-  REGION       AWS region (default: us-west-2)
+  REGION       AWS region (default: ap-northeast-1)
   INSTANCE_ID  EC2 instance id (required)
   DB_ID        RDS DB instance identifier (required)
 
@@ -73,9 +74,9 @@ Optional:
   OUT_JSON=gate_result.json        output file (default: gate_result.json)
 
 Examples:
-  REGION=us-west-2 INSTANCE_ID=i-0cff400cc4f896081 DB_ID=taaops-rds ./gate_network_db.sh
+  REGION=ap-northeast-1 INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DB_ID=taaops-aurora-... ./gate_network_db.sh
 
-  CHECK_PRIVATE_SUBNETS=true REGION=us-west-2 INSTANCE_ID=i-0cff400cc4f896081 DB_ID=taaops-rds ./gate_network_db.sh
+  CHECK_PRIVATE_SUBNETS=true REGION=ap-northeast-1 INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DB_ID=taaops-aurora-... ./gate_network_db.sh
 EOF
 }
 

@@ -28,20 +28,21 @@ set -euo pipefail
 
 # ---------- Defaults (override via env or flags) ----------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/output}"
-REGION="${REGION:-us-west-2}"
-INSTANCE_ID="${INSTANCE_ID:-i-0cff400cc4f896081}"
-SECRET_ID="${SECRET_ID:-taaops/lab/mysql}"
+REGION="${REGION:-ap-northeast-1}"
+INSTANCE_ID="${INSTANCE_ID:-}"
+SECRET_ID="${SECRET_ID:-}"
 OUT_JSON="${OUT_JSON:-$OUTPUT_DIR/gate_secrets_and_role.json}"
 WRITE_GATE_LOG="${WRITE_GATE_LOG:-true}"
-GATE_LOG_DIR="${GATE_LOG_DIR:-LAB1-DELIVERABLES}"
+GATE_LOG_DIR="${GATE_LOG_DIR:-$REPO_ROOT/LAB4-DELIVERABLES}"
 GATE_LOG_FILE="${GATE_LOG_FILE:-$GATE_LOG_DIR/gate_checks.log}"
 
 # toggles (default: strict but sane)
 REQUIRE_ROTATION="${REQUIRE_ROTATION:-true}"          # true/false
 CHECK_SECRET_POLICY_WILDCARD="${CHECK_SECRET_POLICY_WILDCARD:-true}"  # true/false
 CHECK_SECRET_VALUE_READ="${CHECK_SECRET_VALUE_READ:-true}"           # true/false (run on EC2 only)
-EXPECTED_ROLE_NAME="${EXPECTED_ROLE_NAME:-taaops-armageddon-lab1-asm-role}"           # optional; if blank, script resolves from instance profile
+EXPECTED_ROLE_NAME="${EXPECTED_ROLE_NAME:-}"           # optional; if blank, script resolves from instance profile
 
 # ---------- Helpers ----------
 now_utc() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
@@ -64,10 +65,10 @@ add_failure() { failures+=("$1"); }
 usage() {
   cat <<EOF
 Usage:
-  REGION=us-west-2 INSTANCE_ID=i-0cff400cc4f896081 SECRET_ID=taaops/lab/mysql ./gate_secrets_and_role.sh
+  REGION=ap-northeast-1 INSTANCE_ID=i-xxxxxxxxxxxxxxxxx SECRET_ID=arn:aws:secretsmanager:... ./gate_secrets_and_role.sh
 
 Required:
-  REGION        AWS region (default: us-west-2)
+  REGION        AWS region (default: ap-northeast-1)
   INSTANCE_ID   EC2 instance id to check (required)
   SECRET_ID     Secrets Manager secret name or ARN (required)
 
@@ -79,13 +80,13 @@ Optional toggles (env vars):
   OUT_JSON=gate_result.json                  (default: gate_result.json)
 
 Examples:
-  REGION=us-west-2 INSTANCE_ID=i-0cff400cc4f896081 SECRET_ID=taaops/lab/mysql ./gate_secrets_and_role.sh
+  REGION=ap-northeast-1 INSTANCE_ID=i-xxxxxxxxxxxxxxxxx SECRET_ID=arn:aws:secretsmanager:... ./gate_secrets_and_role.sh
 
   # Strict rotation requirement:
-  REQUIRE_ROTATION=true REGION=us-west-2 INSTANCE_ID=i-0cff400cc4f896081 SECRET_ID=taaops/lab/mysql ./gate_secrets_and_role.sh
+  REQUIRE_ROTATION=true REGION=ap-northeast-1 INSTANCE_ID=i-xxxxxxxxxxxxxxxxx SECRET_ID=arn:aws:secretsmanager:... ./gate_secrets_and_role.sh
 
   # Run on the EC2 and verify it can read the secret value (does NOT print it):
-  CHECK_SECRET_VALUE_READ=true REGION=us-west-2 INSTANCE_ID=i-0cff400cc4f896081 SECRET_ID=taaops/lab/mysql ./gate_secrets_and_role.sh
+  CHECK_SECRET_VALUE_READ=true REGION=ap-northeast-1 INSTANCE_ID=i-xxxxxxxxxxxxxxxxx SECRET_ID=arn:aws:secretsmanager:... ./gate_secrets_and_role.sh
 EOF
 }
 

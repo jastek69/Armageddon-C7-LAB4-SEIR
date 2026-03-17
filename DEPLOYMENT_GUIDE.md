@@ -3,28 +3,104 @@
 ## 📁 Repository Structure
 
 ```
-lab-3/
-├── Tokyo/                    # 🏯 Tokyo Region (Primary - Data Authority)
-│   ├── main.tf              # Complete Lab 2 + TGW hub
-│   ├── outputs.tf            # Exposes TGW ID, VPC CIDR, RDS endpoint
-│   ├── variables.tf          # Tokyo-specific variables
-│   └── backend.tf            # Remote state configuration
+LAB4/
+├── Tokyo/                        # 🏯 Tokyo Region (Primary - Data Authority, TGW hub)
+│   ├── main.tf                   # VPC, subnets, EC2/ASG, ALB, KMS
+│   ├── database.tf               # Aurora MySQL cluster + parameter group
+│   ├── flowlogs-rds.tf           # CloudWatch log group + IAM for VPC flow logs
+│   ├── vpc-endpoints.tf          # SSM, EC2Messages, CloudWatch interface endpoints
+│   ├── secrets-rotation.tf       # Secrets Manager + Lambda rotation
+│   ├── outputs.tf                # Exposes TGW ID, VPC CIDR, RDS endpoint, ALB DNS
+│   ├── variables.tf              # Tokyo-specific variables
+│   └── backend.tf                # S3 remote state (taaops-terraform-state-tokyo)
 │
-├── global/                   # 🌐 Global Edge Stack (CloudFront/Route53)
-│   ├── main.tf
-│   ├── outputs.tf
-│   ├── data.tf
-│   └── backend.tf
+├── global/                       # 🌐 Global Edge Stack (CloudFront / WAF / Route53)
+│   ├── cloudfront.tf             # CloudFront distribution + OAC
+│   ├── waf.tf                    # WAFv2 web ACL with managed rule groups
+│   ├── waf-logging.tf            # WAF logging to S3 via Kinesis Firehose
+│   ├── route53.tf                # Public hosted zone + origin A record
+│   ├── s3.tf                     # CloudFront logs bucket
+│   ├── origin-protection.tf      # ALB SG restricted to CloudFront prefix list
+│   ├── break_glass_invalidation.tf  # Null resource for emergency cache invalidation
+│   ├── data.tf                   # Reads Tokyo remote state
+│   ├── outputs.tf                # CloudFront ID, domain, WAF ARN, Route53 zone ID
+│   ├── variables.tf              # Input variables (tokyo_state_key, etc.)
+│   └── backend.tf                # S3 remote state (taaops-terraform-state-tokyo)
 │
-├── saopaulo/                 # 🌴 São Paulo Region (Compute Spoke)
-│   ├── main.tf              # Lab 2 minus DB + TGW spoke  
-│   ├── variables.tf          # São Paulo-specific variables
-│   ├── data.tf               # Reads Tokyo remote state
-│   └── backend.tf            # Remote state configuration
+├── saopaulo/                     # 🌴 São Paulo Region (Compute Spoke)
+│   ├── main.tf                   # VPC, subnets, EC2/ASG, ALB, TGW spoke
+│   ├── vpc-endpoints.tf          # SSM + S3 gateway endpoints
+│   ├── data.tf                   # Reads Tokyo remote state
+│   ├── outputs.tf                # ALB DNS, TGW peering ID, VPC ID
+│   ├── variables.tf              # São Paulo-specific variables
+│   └── backend.tf                # S3 remote state (taaops-terraform-state-saopaulo)
 │
-├── terraform_startup.sh      # Apply wrapper (Tokyo -> global -> saopaulo)
-├── terraform_destroy.sh      # Destroy wrapper (global -> newyork_gcp -> saopaulo -> Tokyo)
-└── DEPLOYMENT_GUIDE.md       # This file
+├── newyork_gcp/                  # ☁️ GCP Stack (HA VPN + nihonmachi compute)
+│   ├── 1-authentication.tf       # GCP provider + service account key
+│   ├── 2-backend.tf              # GCS remote state backend
+│   ├── 3-variables.tf            # Input variables
+│   ├── 4-aws-tgw-vpn-connections.tf.txt  # AWS TGW VPN side (manual apply — see note)
+│   ├── 5-gcp-vpn-connections.tf  # GCP HA VPN tunnels, Cloud Router, BGP peers
+│   ├── network.tf                # nihonmachi VPC + subnets
+│   ├── compute.tf                # MIG + instance template
+│   ├── firewall.tf               # GCP firewall rules
+│   ├── ilb.tf                    # Internal Load Balancer (ILB)
+│   ├── nat.tf                    # Cloud NAT
+│   ├── secrets.tf                # Secret Manager (nihonmachi RDS password)
+│   ├── cas-ilb-cert.tf           # Certificate Authority Service ILB cert
+│   ├── data.tf                   # Reads Tokyo remote state
+│   └── outputs.tf                # GCP ILB IP, VPN tunnel IDs
+│
+├── modules/                      # 🔧 Shared Terraform modules
+│   ├── region-foundation/        # VPC + subnet + IGW scaffolding
+│   ├── regional-iam/             # EC2/ASG instance profile + policies
+│   ├── regional-monitoring/      # CloudWatch alarms + SNS
+│   ├── regional-s3-logging/      # S3 access log bucket
+│   ├── security-baseline/        # GuardDuty, Config, CloudTrail
+│   ├── subnet/                   # Public/private subnet pair
+│   ├── transitgateway/           # TGW + route tables + attachments
+│   ├── translation/              # Route table propagation helpers
+│   └── vpc/                      # Core VPC resource
+│
+├── lambda/                       # 🔁 Lambda source code
+│   ├── lambda.js                 # Alarm handler (CloudWatch → SNS)
+│   ├── alarm_hook.js             # Alarm webhook relay
+│   └── ir_reporter/              # Incident report generator
+│
+├── diagnostics/                  # 🩺 Parameterized diagnostic scripts (post-deploy checks)
+│   ├── _config.py                # Shared helper — resolves all IDs from outputs + live AWS/GCP API
+│   ├── vpn_status.py             # VPN tunnel health (AWS Site-to-Site)
+│   ├── tgw_routes.py             # TGW route table analysis
+│   ├── vpc_routing.py            # VPC route table + subnet checks
+│   ├── tgw_health.py             # TGW attachment health + AZ gap detection
+│   ├── gcp_vpn.py                # GCP BGP session status
+│   ├── gcp_infra.py              # GCP firewall + instance group status
+│   ├── ssm_gcp_ping.py           # Tokyo EC2 → GCP ILB connectivity via SSM
+│   ├── rds_reachability.py       # Aurora reachability from Tokyo + GCP
+│   ├── tgw_connectivity.py       # TGW cross-region connectivity test
+│   └── README.md
+│
+├── scripts/                      # 🛠️ Operational scripts
+│   ├── order66.sh                # CloudFront cache invalidation (break-glass)
+│   ├── user_data.sh              # EC2 bootstrap (app install)
+│   └── static_images/            # Placeholder assets for CloudFront test
+│
+├── LAB4-DELIVERABLES/            # 📦 Captured Terraform outputs (auto-written by startup script)
+│   ├── tokyo-outputs.json
+│   ├── global-outputs.json
+│   ├── newyork-gcp-outputs.json
+│   └── saopaulo-outputs.json
+│
+├── archive/                      # 🗄️ Inactive / one-off scripts kept for reference
+│   └── tokyo-debug-scripts/      # Original pre-parameterization Tokyo debug scripts
+│
+├── terraform_startup.sh          # 🚀 Orchestrated apply (Stages -3 → 4): GCP seed → Tokyo → global → newyork_gcp → saopaulo
+├── terraform_destroy.sh          # 💣 Ordered destroy: global → newyork_gcp → saopaulo → Tokyo
+├── cleanup_verify.sh             # Pre-deploy AWS orphan scan (Tokyo + Sao Paulo)
+├── cleanup_verify_gcp.sh         # Pre-deploy GCP orphan scan (newyork_gcp)
+├── .secrets.env                  # Runtime secrets (PSKs + db_password) — gitignored
+├── .secrets.env.example          # Template for .secrets.env
+└── DEPLOYMENT_GUIDE.md           # This file
 ```
 
 ## 🚀 **Deployment Sequence (IMPORTANT!)**
@@ -40,29 +116,11 @@ aws s3 mb s3://taaops-terraform-state-tokyo --region ap-northeast-1
 aws s3 mb s3://taaops-terraform-state-saopaulo --region sa-east-1
 ```
 
-Optional (team/CI): enable DynamoDB locking in addition to S3 lock files.
 
-```bash
-# Tokyo-region lock table
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region ap-northeast-1
-
-# Sao Paulo-region lock table
-aws dynamodb create-table \
-  --table-name taaops-terraform-state-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region sa-east-1
-```
 
 ### **Step 2: Configure Backend Settings**
 
-DynamoDB state locking is **already enabled** in all four stacks via `dynamodb_table = "taaops-terraform-state-lock"`. The tables exist in both `ap-northeast-1` and `sa-east-1` with `PAY_PER_REQUEST` billing.
+<UPDATE>
 
 Affected backends (all already configured):
 - `Tokyo/backend.tf`
@@ -78,6 +136,18 @@ If you ever change a backend key or switch regions, re-initialize with:
 (cd saopaulo && terraform init -reconfigure)
 (cd newyork_gcp && terraform init -reconfigure)
 ```
+
+
+
+Load secrets and run the startup script:
+```bash
+# From LAB4 root
+source .secrets.env          # loads PSKs + fetches db_password from Secrets Manager
+bash ./terraform_startup.sh  # GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo
+```
+
+`terraform_startup.sh` will abort immediately if any required `TF_VAR_*` is unset.
+
 
 ### **Step 2b: Load Secrets Before Any Terraform Command**
 
@@ -122,15 +192,6 @@ Remote State Key Checklist (update these together for new deployments)
 Run from `<project>` root:
 
 
-Load secrets and run the startup script:
-```bash
-# From LAB4 root
-source .secrets.env          # loads PSKs + fetches db_password from Secrets Manager
-bash ./terraform_startup.sh  # GCP seed -> Tokyo -> global -> newyork_gcp -> saopaulo
-```
-
-`terraform_startup.sh` will abort immediately if any required `TF_VAR_*` is unset.
-
 **Full destroy + redeploy cycle:**
 ```bash
 source .secrets.env
@@ -164,6 +225,11 @@ Recommended:
 ```bash
 bash ./terraform_destroy.sh
 ```
+
+destroy S3 backend bucket:
+
+
+
 
 Script destroy order is remote-state-safe:
 1. `global`
@@ -296,6 +362,16 @@ Or inline for one-off commands:
 MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --distribution-id EXXXXX --paths "/static/*"
 ```
 
+**`terraform import` also affected** — any resource ID starting with `/` (e.g. CloudWatch log group names, SSM parameter paths) gets MSYS-converted:
+```bash
+# WRONG — ID becomes C:/Program Files/Git/vpc/flowlogs/tokyo-rds
+terraform import aws_cloudwatch_log_group.tokyo_rds_flowlogs /vpc/flowlogs/tokyo-rds
+
+# CORRECT
+MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" ~/bin/terraform import \
+  aws_cloudwatch_log_group.tokyo_rds_flowlogs /vpc/flowlogs/tokyo-rds
+```
+
 **Python path on this machine:** `/c/Python311/python.exe` (not `python3` — not in PATH)
 
 **Terraform binary:** `~/bin/terraform.exe` (1.14.6 stable, added to PATH via `.secrets.env`)
@@ -351,14 +427,6 @@ terraform plan -lock-timeout=10m -input=false -out=plan.tfplan
 terraform apply -lock-timeout=10m -input=false plan.tfplan
 ```
 
-**Backup and Recovery:**
-```bash
-# Enable point-in-time recovery on DynamoDB table
-aws dynamodb update-continuous-backups \
-  --table-name taaops-terraform-state-lock \
-  --point-in-time-recovery-specification PointInTimeRecoveryEnabled=true \
-  --region ap-northeast-1
-```
 
 ## ⚠️ **Important Notes**
 

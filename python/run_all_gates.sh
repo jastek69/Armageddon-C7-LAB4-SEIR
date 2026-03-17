@@ -20,8 +20,9 @@ set -euo pipefail
 
 # ---------- Inputs (override via env) ----------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/output}"
-REGION="${REGION:-us-west-2}"
+REGION="${REGION:-ap-northeast-1}"
 ORIGIN_REGION="${ORIGIN_REGION:-$REGION}"
 CF_DISTRIBUTION_ID="${CF_DISTRIBUTION_ID:-}"
 DOMAIN_NAME="${DOMAIN_NAME:-}"
@@ -30,22 +31,22 @@ ACM_CERT_ARN="${ACM_CERT_ARN:-}"
 WAF_WEB_ACL_ARN="${WAF_WEB_ACL_ARN:-}"
 LOG_BUCKET="${LOG_BUCKET:-}"
 ORIGIN_SG_ID="${ORIGIN_SG_ID:-}"
-INSTANCE_ID="${INSTANCE_ID:-i-0cff400cc4f896081}"
-SECRET_ID="${SECRET_ID:-taaops/lab/mysql}"
-DB_ID="${DB_ID:-taaops-rds}"
+INSTANCE_ID="${INSTANCE_ID:-}"
+SECRET_ID="${SECRET_ID:-}"
+DB_ID="${DB_ID:-}"
 
 # toggles pass-through
 REQUIRE_ROTATION="${REQUIRE_ROTATION:-true}"
 CHECK_SECRET_POLICY_WILDCARD="${CHECK_SECRET_POLICY_WILDCARD:-true}"
 CHECK_SECRET_VALUE_READ="${CHECK_SECRET_VALUE_READ:-true}"
-EXPECTED_ROLE_NAME="${EXPECTED_ROLE_NAME:-taaops-armageddon-lab1-asm-role}"
+EXPECTED_ROLE_NAME="${EXPECTED_ROLE_NAME:-}"
 
 CHECK_PRIVATE_SUBNETS="${CHECK_PRIVATE_SUBNETS:-true}"
 
 # output
 OUT_JSON="${OUT_JSON:-$OUTPUT_DIR/gate_result.json}"
 WRITE_GATE_LOG="${WRITE_GATE_LOG:-true}"
-GATE_LOG_DIR="${GATE_LOG_DIR:-LAB1-DELIVERABLES}"
+GATE_LOG_DIR="${GATE_LOG_DIR:-$REPO_ROOT/LAB4-DELIVERABLES}"
 GATE_LOG_FILE="${GATE_LOG_FILE:-$GATE_LOG_DIR/gate_checks.log}"
 
 # ---------- Helpers ----------
@@ -71,9 +72,9 @@ badge_color() {
 
 # ---------- Preconditions ----------
 if [[ -z "$INSTANCE_ID" || -z "$SECRET_ID" || -z "$DB_ID" ]]; then
-  echo "ERROR: You must set INSTANCE_ID, SECRET_ID, and DB_ID." >&2
+  echo "ERROR: You must set INSTANCE_ID, SECRET_ID, and DB_ID for current LAB4 resources." >&2
   echo "Example:" >&2
-  echo "  REGION=us-west-2 INSTANCE_ID=i-... SECRET_ID=my-secret DB_ID=mydb01 ./run_all_gates.sh" >&2
+  echo "  REGION=ap-northeast-1 INSTANCE_ID=i-... SECRET_ID=arn:aws:secretsmanager:... DB_ID=taaops-aurora-... ./run_all_gates.sh" >&2
   exit 1
 fi
 

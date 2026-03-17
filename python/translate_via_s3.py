@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+# Galactus speaks multiple languages and needs a method to translated log file.
+# This function performs the following:
+# Uploads the source file to the input bucket,
+# polls the output bucket until the translated object appears, 
+# downloads it locally with a -jpn suffix into LAB4-DELIVERABLES/localized/.
+# It is called directly for single-file translation or invoked per-file by translate_batch_audit.py.
+# Usage: python translate_via_s3.py --input-bucket <name> --output-bucket <name> --source-file <path>
+
 import argparse
 import os
 import sys
@@ -7,6 +15,10 @@ from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
 
 
 def parse_args():
@@ -23,7 +35,7 @@ def parse_args():
     p.add_argument(
         "--download-to",
         default=None,
-        help="Local output path. Default: LAB3-DELIVERABLES/results/<basename>_translated<ext>.",
+        help="Local output path. Default: LAB4-DELIVERABLES/localized/<basename>-jpn<ext>.",
     )
     return p.parse_args()
 
@@ -33,10 +45,10 @@ def ensure_parent(path: Path):
 
 
 def default_download_path(src: Path) -> Path:
-    out_dir = Path("LAB3-DELIVERABLES") / "results"
+    out_dir = REPO_ROOT / "LAB4-DELIVERABLES" / "localized"
     stem = src.stem
     suffix = src.suffix or ".txt"
-    return out_dir / f"{stem}_translated{suffix}"
+    return out_dir / f"{stem}-jpn{suffix}"
 
 
 def list_matches(s3, bucket: str, prefix: str):

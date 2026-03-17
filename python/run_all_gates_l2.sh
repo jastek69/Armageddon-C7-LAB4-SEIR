@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # ============================================================
 # run_all_gates.sh — SEIR Lab 2 Gate (CloudFront + WAF + Route53 + TLS + Logging + Origin protection)
 #
@@ -24,7 +27,7 @@ set -euo pipefail
 
 # ---------- Required inputs (env vars) ----------
 # Region of your *origin resources* (EC2/ALB/etc.)
-ORIGIN_REGION="${ORIGIN_REGION:-us-west-2}"
+ORIGIN_REGION="${ORIGIN_REGION:-ap-northeast-1}"
 
 # CloudFront Distribution ID (e.g. E1ABCDEF234567)
 CF_DISTRIBUTION_ID="${CF_DISTRIBUTION_ID:-}"
@@ -55,14 +58,14 @@ REQUIRE_LOGGING="${REQUIRE_LOGGING:-true}"        # true/false
 REQUIRE_WAF_ASSOCIATION="${REQUIRE_WAF_ASSOCIATION:-true}"  # true/false
 
 # Output files
-OUT_JSON="${OUT_JSON:-gate_result.json}"
-BADGE_TXT="${BADGE_TXT:-badge.txt}"
-PR_COMMENT_MD="${PR_COMMENT_MD:-pr_comment.md}"
+OUT_JSON="${OUT_JSON:-$REPO_ROOT/LAB4-DELIVERABLES/gate_l2_result.json}"
+BADGE_TXT="${BADGE_TXT:-$REPO_ROOT/LAB4-DELIVERABLES/gate_l2_badge.txt}"
+PR_COMMENT_MD="${PR_COMMENT_MD:-$REPO_ROOT/LAB4-DELIVERABLES/gate_l2_pr_comment.md}"
 
 # SLA persistence (optional but helpful)
 SLA_HOURS="${SLA_HOURS:-24}"
-STATE_DIR="${STATE_DIR:-.gate_state}"
-STATE_FILE="${STATE_FILE:-.gate_state/lab2_first_seen_utc.txt}"
+STATE_DIR="${STATE_DIR:-$SCRIPT_DIR/.gate_state}"
+STATE_FILE="${STATE_FILE:-$STATE_DIR/lab2_first_seen_utc.txt}"
 
 # ---------- Constants ----------
 CF_ACM_REGION="us-east-1"
@@ -557,7 +560,7 @@ EOF
 
 # Write PR comment
 cat > "$PR_COMMENT_MD" <<EOF
-### SEIR Lab 2 Gate Result: **$badge** ($overall_status)
+### SEIR Lab 4 Gate Result: **$badge** ($overall_status)
 
 **Domain:** \`$DOMAIN_NAME\`  
 **CloudFront:** \`$CF_DISTRIBUTION_ID\` (domain: \`$cf_domain\`)  
@@ -577,7 +580,7 @@ $(if (( ${#failures[@]} == 0 )); then echo "- (none)"; else for f in "${failures
 **Warnings**
 $(if (( ${#warnings[@]} == 0 )); then echo "- (none)"; else for w in "${warnings[@]}"; do echo "- $w"; done; fi)
 
-> Reminder: Hennessy does not fix Route53 alias records. Evidence does.
+> Reminder: Saki does not fix Route53 alias records. Evidence does.
 EOF
 
 # Optional jq summary (nice for students)

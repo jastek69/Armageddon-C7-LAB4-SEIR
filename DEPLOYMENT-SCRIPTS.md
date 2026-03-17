@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Start
 
-Run these from the `LAB3` repository root (`SEIR_Foundations/LAB3`).
+Run these from the root directory: e.g. `LAB4` repository root (`SEIR_Foundations/LAB4`).
 
 Note on naming:
 - This repo's apply wrapper is `terraform_startup.sh`.
@@ -79,6 +79,40 @@ bash ./terraform_destroy.sh
 
 # Prompts:
 # - Confirm destruction: yes
+```
+
+NOTE: You will need to manually destroy the S3 backend bucket.
+
+
+Short version if versioning is off or not concerned about the versions:
+```bash
+aws s3 rb s3://taaops-terraform-state-saopaulo --force --region sa-east-1
+```
+
+If versioning is enabled - to delete all versions and delete markers before the bucked can be removed:
+```bash
+# 1. Delete all object versions
+aws s3api delete-objects \
+  --bucket taaops-terraform-state-saopaulo \
+  --region sa-east-1 \
+  --delete "$(aws s3api list-object-versions \
+    --bucket taaops-terraform-state-saopaulo \
+    --region sa-east-1 \
+    --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
+    --output json)" 2>/dev/null
+
+# 2. Delete all delete markers
+aws s3api delete-objects \
+  --bucket taaops-terraform-state-saopaulo \
+  --region sa-east-1 \
+  --delete "$(aws s3api list-object-versions \
+    --bucket taaops-terraform-state-saopaulo \
+    --region sa-east-1 \
+    --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
+    --output json)" 2>/dev/null
+
+# 3. Force-empty any remaining objects and delete the bucket - --force empties current objects but won't remove old versions — use the three-step version above to be thorough.
+aws s3 rb s3://taaops-terraform-state-saopaulo --force --region sa-east-1
 ```
 
 ### Manual Steps (if needed)
@@ -180,6 +214,21 @@ cd saopaulo/ && terraform init && terraform apply
 5. **Monitor** - Infrastructure status dashboard
 
 ---
+
+### Translation of logs from English to Japanese
+
+Run this command in order to trigger the conversion:
+```py
+/c/Python311/python.exe python/translate_batch_audit.py \
+  --input-bucket  taaops-translate-input  \
+  --output-bucket taaops-translate-output \
+  --source-dir    LAB4-DELIVERABLES       \
+  --glob          "*.json"                \
+  --key-prefix    lab4-deliverables       \ 
+  --region        ap-northeast-1
+```
+
+
 
 ## 🏁 Success Criteria
 

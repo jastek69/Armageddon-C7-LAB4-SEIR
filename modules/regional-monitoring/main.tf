@@ -397,7 +397,7 @@ resource "aws_cloudwatch_dashboard" "regional_dashboard" {
           ]
           period = 300
           stat   = "Average"
-          region = data.aws_region.current.name
+          region = data.aws_region.current.id
           title  = "${var.region_name} System Metrics"
         }
       },
@@ -410,7 +410,7 @@ resource "aws_cloudwatch_dashboard" "regional_dashboard" {
 
         properties = {
           query   = "SOURCE '${aws_cloudwatch_log_group.application.name}' | fields @timestamp, @message | sort @timestamp desc | limit 100"
-          region  = data.aws_region.current.name
+          region  = data.aws_region.current.id
           title   = "${var.region_name} Application Logs"
         }
       }

@@ -95,7 +95,7 @@ data "aws_iam_policy_document" "database_access" {
     ]
     resources = [
       var.database_secret_arn,
-      "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:rds!cluster-*"
+      "arn:aws:secretsmanager:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:secret:rds!cluster-*"
     ]
   }
 
@@ -124,7 +124,7 @@ data "aws_iam_policy_document" "database_access" {
       test     = "StringEquals"
       variable = "kms:ViaService"
       values = [
-        "secretsmanager.${data.aws_region.current.name}.amazonaws.com"
+        "secretsmanager.${data.aws_region.current.id}.amazonaws.com"
       ]
     }
   }
@@ -173,7 +173,7 @@ data "aws_iam_policy_document" "regional_monitoring" {
       "logs:DescribeLogGroups"
     ]
     resources = [
-      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+      "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:*"
     ]
   }
 }
@@ -225,7 +225,7 @@ data "aws_iam_policy_document" "regional_application" {
       "sns:Publish"
     ]
     resources = [
-      "arn:aws:sns:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${var.project_name}-${var.region_name}-*"
+      "arn:aws:sns:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:${var.project_name}-${var.region_name}-*"
     ]
   }
 }

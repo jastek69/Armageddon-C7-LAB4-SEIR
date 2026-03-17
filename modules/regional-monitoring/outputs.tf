@@ -34,6 +34,6 @@ output "alerts_topic_name" {
 Not being used
 output "dashboard_url" {
   description = "URL of the regional CloudWatch dashboard"
-  value       = "https://${data.aws_region.current.name}.console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.name}#dashboards:name=${aws_cloudwatch_dashboard.regional_dashboard.dashboard_name}"
+  value       = "https://${data.aws_region.current.id}.console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.id}#dashboards:name=${aws_cloudwatch_dashboard.regional_dashboard.dashboard_name}"
 }
 */

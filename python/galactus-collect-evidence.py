@@ -2,6 +2,10 @@
 import json, os, subprocess, sys, argparse, datetime
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+DEFAULT_AUDIT_OUT = REPO_ROOT / "LAB4-DELIVERABLES" / "audit-pack"
+
 # Galactus doesn't trust dashboards. He trusts artifacts. This script turns infrastructure into evidence.
 # Audits, incidents, and regulated environments require reproducible proof—automation wins promotions.
 # This is a multi-cloud evidence collector that outputs regulator-ready artifacts from AWS + GCP on demand."
@@ -92,7 +96,7 @@ def collect_gcp_ny(outdir: Path, project: str, region: str):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="audit-pack", help="output folder")
+    ap.add_argument("--out", default=str(DEFAULT_AUDIT_OUT), help="output folder")
     ap.add_argument("--aws-profile", default=None)
     ap.add_argument("--gcp-project", default=None)
     ap.add_argument("--gcp-region", default="us-central1")

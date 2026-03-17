@@ -56,6 +56,10 @@ def safe_print_kv_list(results):
         print(pp(kv))
 
 
+def count_results(results) -> int:
+    return len(results or [])
+
+
 # ---------------------------
 # Subcommand: triage
 # ---------------------------
@@ -107,8 +111,18 @@ def cmd_insights(args):
         r = logs.get_query_results(queryId=qid)
         status = r.get("status")
         if status == "Complete":
-            print(f"\n[GALACTUS] Logs Insights results ({args.log_group})\nQuery:\n{args.query}\n")
-            safe_print_kv_list(r.get("results", []))
+            results = r.get("results", [])
+            total = count_results(results)
+            print(
+                f"\n[GALACTUS] Logs Insights results ({args.log_group})\n"
+                f"Query ID: {qid}\n"
+                f"Rows: {total}\n"
+                f"Query:\n{args.query}\n"
+            )
+            if total == 0:
+                print("No results found for the selected time window.")
+            else:
+                safe_print_kv_list(results)
             return
         if status in ("Failed", "Cancelled", "Timeout"):
             die(f"Logs Insights query ended: {status}")

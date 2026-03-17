@@ -94,7 +94,7 @@ data "aws_iam_policy_document" "tokyo_secrets_rotation" {
     condition {
       test     = "StringEquals"
       variable = "kms:ViaService"
-      values   = ["secretsmanager.${data.aws_region.current.name}.amazonaws.com"]
+      values   = ["secretsmanager.${data.aws_region.current.id}.amazonaws.com"]
     }
   }
 }

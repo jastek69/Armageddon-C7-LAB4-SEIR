@@ -130,6 +130,40 @@ for bucket_region in "taaops-terraform-state-tokyo:ap-northeast-1" "taaops-terra
   fi
 done
 
+# Stage -1: Import any orphaned CloudWatch log groups that survived a partial destroy.
+# Scenario: destroy was interrupted after Terraform removed the resource from state
+# but before it deleted it from AWS. Next apply would hit ResourceAlreadyExistsException.
+# Note: MSYS_NO_PATHCONV=1 is required — Git Bash converts /vpc/... to a Windows path otherwise.
+# Note: Use -chdir= instead of a subshell (cd Tokyo; ...) — on Windows/Git Bash, native .exe
+#       binaries do not inherit the subshell's cwd, so terraform still sees the parent directory.
+echo ""
+echo "=== Pre-flight: checking for orphaned log groups ==="
+terraform -chdir=Tokyo init -upgrade -no-color > /dev/null 2>&1 || true
+
+orphaned_log_groups=(
+  "aws_cloudwatch_log_group.tokyo_rds_flowlogs:/vpc/flowlogs/tokyo-rds:ap-northeast-1"
+)
+for entry in "${orphaned_log_groups[@]}"; do
+  resource="${entry%%:*}"; rest="${entry#*:}"; log_group="${rest%%:*}"; region="${rest##*:}"
+  exists=$(MSYS_NO_PATHCONV=1 aws logs describe-log-groups \
+    --log-group-name-prefix "$log_group" \
+    --region "$region" \
+    --query "logGroups[?logGroupName=='${log_group}'].logGroupName" \
+    --output text 2>/dev/null || true)
+  if [[ -n "$exists" ]]; then
+    if terraform -chdir=Tokyo state list 2>/dev/null | grep -q "^${resource}$"; then
+      echo "  $log_group — in state, skipping."
+    else
+      echo "  $log_group — exists in AWS but not in state; importing..."
+      MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" \
+        terraform -chdir=Tokyo import "$resource" "$log_group"
+      echo "  Import complete."
+    fi
+  else
+    echo "  $log_group — not in AWS (fresh deploy), skipping."
+  fi
+done
+
 # Stage 0: GCP seed (HA VPN public IPs)
 run_apply_targets "newyork_gcp" "gcp-seed.tfplan" \
   "google_compute_network.nihonmachi-vpc" \

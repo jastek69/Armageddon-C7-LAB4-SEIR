@@ -1,11 +1,27 @@
-chmod +x run_all_gates.sh
+Run these commands from the LAB4 repository root.
 
-ORIGIN_REGION="$(terraform output -raw origin_region)" \
-CF_DISTRIBUTION_ID="$(terraform output -raw cloudfront_distribution_id)" \
-DOMAIN_NAME="$(terraform output -raw domain_name)" \
-ROUTE53_ZONE_ID="$(terraform output -raw route53_zone_id)" \
-ACM_CERT_ARN="$(terraform output -raw cloudfront_acm_cert_arn)" \
-WAF_WEB_ACL_ARN="$(terraform output -raw waf_web_acl_arn)" \
-LOG_BUCKET="$(terraform output -raw log_bucket)" \
-ORIGIN_SG_ID="$(terraform output -raw origin_sg_id)" \
-./run_all_gates.sh
+One-time setup if needed:
+chmod +x python/run_all_gates.sh python/run_all_gates_l2.sh
+
+LAB4 Gate 1/2: secrets_and_role + network_db
+REGION="$(terraform -chdir=Tokyo output -raw tokyo_region)" \
+SECRET_ID="$(terraform -chdir=Tokyo output -raw database_secret_arn)" \
+DB_ID="$(aws rds describe-db-clusters --region "$(terraform -chdir=Tokyo output -raw tokyo_region)" --query "DBClusters[?Endpoint=='$(terraform -chdir=Tokyo output -raw database_endpoint)'].DBClusterMembers[0].DBInstanceIdentifier" --output text)" \
+INSTANCE_ID="$(aws elbv2 describe-target-health --region "$(terraform -chdir=Tokyo output -raw tokyo_region)" --target-group-arn "$(terraform -chdir=Tokyo output -raw tokyo_alb_tg_arn)" --query 'TargetHealthDescriptions[0].Target.Id' --output text)" \
+bash python/run_all_gates.sh
+
+LAB4 Gate L2: CloudFront + WAF + Route53 + TLS + logging
+ORIGIN_REGION="$(terraform -chdir=Tokyo output -raw tokyo_region)" \
+CF_DISTRIBUTION_ID="$(terraform -chdir=global output -raw cloudfront_distribution_id)" \
+DOMAIN_NAME="$(terraform -chdir=Tokyo output -raw domain_name)" \
+ROUTE53_ZONE_ID="$(terraform -chdir=global output -raw route53_zone_id)" \
+ACM_CERT_ARN="$(aws cloudfront get-distribution --id "$(terraform -chdir=global output -raw cloudfront_distribution_id)" --query 'Distribution.DistributionConfig.ViewerCertificate.ACMCertificateArn' --output text)" \
+WAF_WEB_ACL_ARN="$(terraform -chdir=global output -raw cloudfront_waf_arn)" \
+LOG_BUCKET="$(terraform -chdir=global output -raw cloudfront_logs_bucket)" \
+ORIGIN_SG_ID="$(terraform -chdir=Tokyo output -raw tokyo_alb_sg_id)" \
+bash python/run_all_gates_l2.sh
+
+Notes:
+- The environment variables in front of the command apply only to that single command run.
+- Gate outputs now write to LAB4/LAB4-DELIVERABLES by default.
+- Running from repo root avoids path confusion with Terraform and output files.

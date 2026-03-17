@@ -177,6 +177,13 @@ resource "aws_iam_policy" "translation_lambda_policy" {
           "translate:TranslateDocument"
         ]
         "Resource" = "*"
+      },
+      {
+        "Effect" = "Allow"
+        "Action" = [
+          "comprehend:DetectDominantLanguage"
+        ]
+        "Resource" = "*"
       }
     ]
   })

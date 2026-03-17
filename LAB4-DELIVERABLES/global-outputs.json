@@ -2,12 +2,12 @@
   "cloudfront_distribution_domain_name": {
     "sensitive": false,
     "type": "string",
-    "value": "dyhwff2ecdsdl.cloudfront.net"
+    "value": "di169d5rywa8.cloudfront.net"
   },
   "cloudfront_distribution_id": {
     "sensitive": false,
     "type": "string",
-    "value": "E313MTDIOOC9AQ"
+    "value": "ENP720UZH7L0G"
   },
   "cloudfront_logs_bucket": {
     "sensitive": false,
@@ -17,7 +17,7 @@
   "cloudfront_waf_arn": {
     "sensitive": false,
     "type": "string",
-    "value": "arn:aws:wafv2:us-east-1:015195098145:global/webacl/taaops-cf-waf01/b81dea06-7ef3-4708-a6fd-6c66add7620c"
+    "value": "arn:aws:wafv2:us-east-1:015195098145:global/webacl/taaops-cf-waf01/64a61de7-08e6-460b-8263-8f859b8cfc21"
   },
   "origin_fqdn": {
     "sensitive": false,
