@@ -1,4 +1,4 @@
-# LAB3 Multi-Region AWS Architecture with Transit Gateway
+# LAB4 Multi-Region AWS Architecture with Transit Gateway with HA VPN BGP connection to GCP 
 
 This project implements a multi-region AWS infrastructure across Tokyo (ap-northeast-1) and São Paulo (sa-east-1) connected via AWS Transit Gateway with inter-region peering.
 
@@ -18,11 +18,12 @@ This project implements a multi-region AWS infrastructure across Tokyo (ap-north
 - **Edge WAF**: WAFv2 Web ACL for CloudFront
 
 #### Tokyo (ap-northeast-1)
-- **VPC**: `10.0.0.0/16` (Primary hub)
-- **Transit Gateway**: Hub for inter-region connectivity
-- **Database**: Aurora MySQL cluster (secure, Tokyo-only)
+- **VPC**: `10.233.0.0/16` (Primary hub)
+- **Transit Gateway**: `shinjuku-tgw01` (ASN 65501) — hub for inter-region and cross-cloud connectivity
+- **Database**: Aurora MySQL cluster (`galactus` DB) in private subnets only
 - **Application**: Auto-scaling EC2 with ALB
-- **Modules**: Regional IAM, S3 logging, monitoring
+- **IR Pipeline**: CloudWatch → SNS → Lambda → Bedrock → S3 → Translation
+- **Modules**: Regional IAM, S3 logging, monitoring, translation
 
 #### São Paulo (sa-east-1)  
 - **VPC**: `10.234.0.0/16` (Non-overlapping spoke)
@@ -34,33 +35,49 @@ This project implements a multi-region AWS infrastructure across Tokyo (ap-north
 ## Directory Structure
 
 ```
-LAB3/
+LAB4/
 ├── global/                   # Global stack (Route53 + CloudFront + edge WAF)
-│   ├── providers.tf
 │   ├── cloudfront.tf
 │   ├── route53.tf
 │   ├── waf.tf
+│   ├── waf-logging.tf
+│   ├── s3.tf
 │   ├── outputs.tf
 │   └── backend.tf
-├── Tokyo/                     # Tokyo region (primary + secure services)
+├── Tokyo/                    # Tokyo region (primary hub + data authority)
 │   ├── main.tf               # VPC, TGW hub, ALB, EC2, modules
-│   ├── database.tf           # Aurora MySQL cluster
+│   ├── database.tf           # Aurora MySQL cluster (galactus DB)
+│   ├── tgw-route-tables.tf   # TGW route tables, associations, VPN static routes
+│   ├── bedrock-autoreport.tf # IR pipeline (SNS → Lambda → Bedrock → S3)
+│   ├── vpc-endpoints.tf      # SSM/Logs interface + S3 gateway endpoints
 │   ├── global-iam.tf         # Cross-region IAM roles
-│   ├── userdata.sh           # EC2 initialization script
 │   ├── outputs.tf            # Outputs for remote state
 │   ├── variables.tf          # Region-specific variables
-│   └── backend.tf            # S3 remote state config
-├── saopaulo/                 # São Paulo region (compute spoke)
+│   └── backend.tf            # S3 remote state (with use_lockfile)
+├── saopaulo/                 # São Paulo region (stateless compute spoke)
 │   ├── main.tf               # VPC, TGW spoke, ALB, EC2, modules
-│   ├── outputs.tf            # Outputs for remote state
-│   ├── variables.tf          # Region-specific variables
-│   └── backend.tf            # S3 remote state config
-├── terraform_startup.sh      # Apply wrapper (Tokyo -> global -> saopaulo)
-├── terraform_destroy.sh      # Destroy wrapper (global -> Tokyo -> saopaulo)
-└── modules/                  # Shared reusable modules
-    ├── regional-iam/         # IAM roles and policies
-    ├── regional-monitoring/  # CloudWatch and SNS
-    └── regional-s3-logging/  # S3 buckets for logs
+│   ├── data.tf               # Reads Tokyo remote state
+│   ├── outputs.tf
+│   └── backend.tf
+├── newyork_gcp/              # GCP private app stack + HA VPN/BGP to AWS TGW
+│   ├── 1-authentication.tf
+│   ├── 2-backend.tf
+│   ├── 3-variables.tf
+│   ├── 4-aws-tgw-vpn-connections.tf  # AWS TGW CGWs + VPN connections
+│   ├── 5-gcp-vpn-connections.tf      # GCP Cloud Router, HA VPN, BGP tunnels
+│   ├── compute.tf
+│   ├── network.tf
+│   ├── outputs.tf
+│   └── cas-ilb-cert.tf
+├── modules/
+│   ├── translation/          # S3 input/output buckets + translation Lambda
+│   ├── regional-iam/
+│   ├── regional-monitoring/
+│   └── regional-s3-logging/
+├── lambda/                   # IR reporter, alarm hook, rotation Lambda source
+├── python/                   # CLI tools and automation scripts
+├── terraform_startup.sh      # Apply: GCP seed → Tokyo → global → newyork_gcp → saopaulo
+└── terraform_destroy.sh      # Destroy: global → newyork_gcp → saopaulo → Tokyo
 ```
 
 ## Module Architecture
@@ -89,9 +106,164 @@ LAB3/
 4. **Security groups** allow MySQL (3306) between regions
 
 ### Network Flow
+
+***Network Diagram - SEIR MEdical***
+![This is the network diagram.](/LAB4-DELIVERABLES/images/SEIR_TransitGatewayAWStoGCP.png "Network Diagram.")
+
+
 ```
 São Paulo App Servers → São Paulo TGW → TGW Peering → Tokyo TGW → Tokyo Database
+New York (GCP) App Servers → New York  → TGW Peering HA VPN BGP tunnels with rotation → Tokyo TGW → Tokyo Database
 ```
+
+### TOPOLOGY
+
+***The IR + Translation pipeline is operational/security infrastructure:***
+┌─────────────────────────────────────┐      ┌────────────────┐
+│  Tier 1 – Edge                      │      │  GCP (NY)      │
+│  CloudFront → WAF → Route53         │      │                │
+├─────────────────────────────────────┤      │  VPN Tunnels   │
+│  Tier 2 – App                       │◄────►│  ──────────    │
+│  ALB → EC2                          │  TGW │  GCP VPCs      │
+├─────────────────────────────────────┤      └────────────────┘
+│  Tier 3 – Data                      │
+│  RDS → S3 → Secrets → KMS           │
+└─────────────────────────────────────┘
+         │ CloudWatch monitors all tiers
+         ▼
+┌─────────────────────────────────────┐
+│  Ops/Security Layer (cross-cutting) │
+│                                     │
+│  CW Alarm → SNS → IR Lambda         │
+│                    ↓                │
+│                  Bedrock            │
+│                    ↓                │
+│                   S3 ──(ObjectCreated)──► Translation Lambda → Translate → S3
+└─────────────────────────────────────┘
+
+
+***Network Design***
+Internet
+    │
+    ├── Internet Gateway: tokyo-igw01
+    │
+VPC: shinjuku_vpc01
+│
+├── Public Subnets (x3 AZs: a/b/c)
+│   ├── taaops-tokyo-public-subnet-a
+│   ├── taaops-tokyo-public-subnet-b
+│   ├── taaops-tokyo-public-subnet-c
+│   └── Route Table: tokyo-public-rt
+│       ├── 0.0.0.0/0 → IGW
+│       ├── var.saopaulo_vpc_cidr → TGW
+│       └── var.gcp_vpc_cidr → TGW
+│
+├── Private Subnets (x3 AZs: a/b/c)
+│   ├── taaops-tokyo-private-subnet-a
+│   ├── taaops-tokyo-private-subnet-b
+│   ├── taaops-tokyo-private-subnet-c
+│   │   └── EC2 / ASG / ALB / Aurora RDS
+│   └── Route Table: tokyo-private-rt
+│       ├── 0.0.0.0/0 → NAT Gateway
+│       ├── var.saopaulo_vpc_cidr → TGW
+│       └── var.gcp_vpc_cidr → TGW
+│
+├── TGW Subnets (attachment ENIs — no workloads)
+│   ├── taaops-tokyo-tgw-subnet    (AZ-a, 10.233.100.0/28)
+│   └── taaops-tokyo-tgw-subnet-c  (AZ-c, 10.233.101.0/28)
+│
+└── NAT Gateway: tokyo-regional-nat-gw  (on public-subnet-a)
+
+Transit Gateway: shinjuku-tgw01  (ASN: 65501)
+│
+├── VPC Attachment: tokyo_vpc_attachment
+│   └── Subnets: tgw-subnet (AZ-a) + tgw-subnet-c (AZ-c)
+│
+├── Peering Attachment → São Paulo TGW (sa-east-1)
+│
+├── Customer Gateway 1: gcp_cgw_1  (GCP HA VPN interface 0 IP)
+│   └── VPN Connection: tgw-to-gcp-vpn-1
+│       ├── Tunnel 1 (PSK1, inside CIDR: tunnel1_inside_cidr)
+│       └── Tunnel 2 (PSK2, inside CIDR: tunnel2_inside_cidr)
+│
+├── Customer Gateway 2: gcp_cgw_2  (GCP HA VPN interface 1 IP)
+│   └── VPN Connection: tgw-to-gcp-vpn-2
+│       ├── Tunnel 3 (PSK3, inside CIDR: tunnel3_inside_cidr)
+│       └── Tunnel 4 (PSK4, inside CIDR: tunnel4_inside_cidr)
+│
+├── TGW Route Table: shinjuku-tgw-rt-main
+│   ├── ASSOCIATIONS: tokyo_vpc_attachment, sao_peering_attachment
+│   ├── PROPAGATIONS: tokyo_vpc, sao_peering, gcp_vpn1, gcp_vpn2
+│   └── STATIC ROUTES:
+│       ├── 10.235.1.0/24   → tgw_vpn_1  (GCP app subnet)
+│       └── 10.235.254.0/24 → tgw_vpn_1  (GCP proxy-only subnet)
+│
+└── TGW Route Table: shinjuku-tgw-rt-vpn
+    ├── ASSOCIATIONS: gcp_vpn1_attach, gcp_vpn2_attach
+    └── PROPAGATIONS: tokyo_vpc, sao_peering, gcp_vpn1, gcp_vpn2
+	
+
+
+### FLOWCHART
+
+```mermaid
+flowchart LR
+  %% LAB4 current deployed workflow (Terraform-verified)
+
+  subgraph Detection["Detection Layer"]
+    CWA["CloudWatch Alarms"]
+    CWL["CloudWatch Logs"]
+    SNSAlerts["SNS: cloudwatch-alarms / regional-alerts"]
+    SNSTrigger["SNS: tokyo-ir-trigger-topic"]
+  end
+
+  subgraph IR["Incident Report Pipeline"]
+    IRLambda["Lambda: tokyo-ir-reporter"]
+    Insights["Logs Insights Queries"]
+    Bedrock["Amazon Bedrock (IR narrative)"]
+    IRS3["S3: IR Reports Bucket (JSON/MD)"]
+    SNSReady["SNS: tokyo-ir-reports-topic"]
+  end
+
+  subgraph Translation["Translation Pipeline"]
+    InBucket["S3: Translation Input Bucket"]
+    TransLambda["Lambda: translation processor"]
+    Translate["Amazon Translate (+ Comprehend detect language)"]
+    OutBucket["S3: Translation Output Bucket"]
+  end
+
+  CWA --> SNSAlerts
+  SNSAlerts --> IRLambda
+  SNSTrigger --> IRLambda
+
+  CWL --> Insights
+  Insights --> IRLambda
+
+  IRLambda --> Bedrock
+  Bedrock --> IRLambda
+  IRLambda --> IRS3
+  IRLambda --> SNSReady
+
+  IRLambda --> InBucket
+  InBucket -->|S3 ObjectCreated Event| TransLambda
+  TransLambda --> Translate
+  Translate --> TransLambda
+  TransLambda --> OutBucket
+```
+
+
+### SECURITY
+Users
+  |
+CloudFront / WAF / Route53
+  |
+Tokyo Region (primary 3-tier)
+  |
+Transit Gateway
+ / \
+/   \
+Sao Paulo Region   GCP New York
+
 
 ## Deployment Process
 
@@ -122,7 +294,7 @@ source .secrets.env
 bash terraform_destroy.sh    # type DESTROY when prompted; order: global -> newyork_gcp -> saopaulo -> Tokyo
 source .secrets.env          # re-source after destroy (shell may have been closed)
 bash terraform_startup.sh    # fully automated after secrets are sourced
-
+```
 
 Windows Line Endings Fix (if scripts fail with /usr/bin/env)
 ```bash
@@ -604,3 +776,31 @@ Short version if versioning is off or not concerned about the versions:
 ```bash
 aws s3 rb s3://taaops-terraform-state-saopaulo --force --region sa-east-1
 ```
+
+# APPENDIX
+sequenceDiagram
+  participant Alarm as CloudWatch Alarm
+  participant SNSA as SNS Alerts Topic
+  participant IRL as IR Lambda
+  participant Logs as CloudWatch Logs Insights
+  participant BR as Bedrock
+  participant IRS3 as S3 IR Reports
+  participant SNSR as SNS Report-Ready
+  participant Tin as S3 Translation Input
+  participant TL as Translation Lambda
+  participant TR as Amazon Translate
+  participant Tout as S3 Translation Output
+
+  Alarm->>SNSA: Alarm notification
+  SNSA->>IRL: Invoke Lambda
+  IRL->>Logs: Run insights queries
+  Logs-->>IRL: Evidence results
+  IRL->>BR: Generate IR summary
+  BR-->>IRL: Narrative response
+  IRL->>IRS3: Write JSON/Markdown IR report
+  IRL->>SNSR: Publish report-ready notification
+  IRL->>Tin: Put source document for translation
+  Tin->>TL: ObjectCreated trigger
+  TL->>TR: Translate content
+  TR-->>TL: Translated text/document
+  TL->>Tout: Write translated output

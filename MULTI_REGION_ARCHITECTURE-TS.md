@@ -52,14 +52,19 @@ This Terraform configuration implements a secure multi-region AWS architecture w
   - ILB IP: output `nihonmachi_ilb_ip` in [newyork_gcp/outputs.tf](newyork_gcp/outputs.tf#L9-L12)
   - Private DNS: A record in [Tokyo/route53-private-ilb.tf](Tokyo/route53-private-ilb.tf#L9-L22)
 
-## Key Files Updated
+## Key Files
 
 ### Core Infrastructure
-- `[variables.tf](variables.tf)`: Added region-specific CIDR blocks and AZ definitions
-- `[02-vpc.tf](02-vpc.tf)`: Tokyo and São Paulo VPCs
-- `[03-subnets.tf](03-subnets.tf)`: Multi-region subnet configuration
-- `[04-igw-nat.tf](04-igw-nat.tf)`: Internet and NAT gateways for both regions
-- `[05-rtb.tf](05-rtb.tf)`: Route tables with cross-region routing
+- [Tokyo/main.tf](Tokyo/main.tf): VPC, subnets, route tables, TGW attachment, ALB, EC2 ASG, modules
+- [Tokyo/tgw-route-tables.tf](Tokyo/tgw-route-tables.tf): TGW route tables (`shinjuku-tgw-rt-main`, `shinjuku-tgw-rt-vpn`), associations, propagations, static GCP routes
+- [Tokyo/database.tf](Tokyo/database.tf): Aurora MySQL cluster (`galactus` DB) — Tokyo-only
+- [Tokyo/vpc-endpoints.tf](Tokyo/vpc-endpoints.tf): SSM/EC2Messages/SSMMessages/Logs interface endpoints + S3 gateway endpoint
+- [Tokyo/bedrock-autoreport.tf](Tokyo/bedrock-autoreport.tf): IR pipeline (SNS → Lambda → Bedrock → S3)
+- [modules/translation/main.tf](modules/translation/main.tf): Translation input/output S3 buckets + Lambda trigger
+- [newyork_gcp/4-aws-tgw-vpn-connections.tf.txt](newyork_gcp/4-aws-tgw-vpn-connections.tf.txt): AWS Customer Gateways + TGW VPN connections (4 tunnels)
+- [newyork_gcp/5-gcp-vpn-connections.tf](newyork_gcp/5-gcp-vpn-connections.tf): GCP Cloud Router, HA VPN Gateway, BGP tunnel interfaces
+- [saopaulo/main.tf](saopaulo/main.tf): São Paulo VPC, TGW spoke, ALB, EC2 ASG — no RDS
+- [global/cloudfront.tf](global/cloudfront.tf): CloudFront distribution with WAF, ACM, origin cloaking
 
 ### Tunnel Notes:
 
@@ -126,18 +131,11 @@ saopaulo_vpc_cidr = "10.234.0.0/16"
 sao_azs = ["sa-east-1a", "sa-east-1b", "sa-east-1c"]
 ```
 
-## Next Steps
-
-1. **Test Connectivity**: Verify TGW peering and routing
-2. **Deploy Applications**: EC2 instances in both regions
-3. **Monitor Performance**: Cross-region latency and throughput
-4. **Security Validation**: Database access patterns and logging
-
 ---
 
-**Architecture Benefits**:
-- ✅ Data sovereignty (database in Tokyo)
-- ✅ Distributed compute capability
-- ✅ Secure cross-region connectivity
-- ✅ High availability across regions
-- ✅ Scalable Inter-region bandwidth
+**Architecture Properties**:
+- ✅ Data sovereignty — Aurora RDS stays in Tokyo (`ap-northeast-1`) only
+- ✅ Cross-cloud connectivity — GCP New York reaches Tokyo RDS via HA VPN + TGW
+- ✅ Stateless compute spokes — São Paulo and New York hold no persistent PHI
+- ✅ S3 native locking — all four backends use `use_lockfile = true` (Terraform ≥ 1.10)
+- ✅ IR automation — CloudWatch Alarm → SNS → Lambda → Bedrock → S3 → Translation
