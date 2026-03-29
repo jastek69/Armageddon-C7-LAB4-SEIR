@@ -75,18 +75,18 @@ pipeline {
                 }
             }
         }
-    }
 
-    stage('Deploy to S3') {
-    steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
-            sh '''
-                pip3 install --user boto3
-                python3 deploy-to-s3.py --source-dir ./S3-DELIVERABLES --delete
-            '''
+        stage('Deploy to S3') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+                    sh '''
+                        pip3 install --user boto3
+                        python3 deploy-to-s3.py --source-dir ./S3-DELIVERABLES --delete
+                    '''
+                }
+            }
         }
     }
-}
 
     post {
         success { echo 'Terraform deployment completed successfully!' }
