@@ -31,8 +31,8 @@ pipeline {
                 withCredentials([string(credentialsId: 'SONARQUBE_TOKEN', variable: 'SONAR_TOKEN')]) {
                     sh """
                       ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                        -Dsonar.projectKey=derrickSh43_autoScale \
-                        -Dsonar.organization=derricksh43 \
+                        -Dsonar.projectKey=jastekops_pipeline-test-sonarqube \
+                        -Dsonar.organization=jastekops \
                         -Dsonar.host.url=${SONARQUBE_URL} \
                         -Dsonar.login=${SONAR_TOKEN}
                     """
