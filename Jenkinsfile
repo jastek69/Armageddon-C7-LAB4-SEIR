@@ -98,11 +98,15 @@ pipeline {
                         chmod +x terraform_destroy.sh
                         source "$SECRETS_FILE"
                         
+                        # Debug and fix permissions
+                        echo "Current directory: \$(pwd)"
+                        ls -la | head -5
+                        
                         # Copy GCP credentials to all stack directories
-                        cp "$GCP_CREDS" taaops-e9943412868a.json
-                        cp "$GCP_CREDS" Tokyo/taaops-e9943412868a.json
-                        cp "$GCP_CREDS" newyork_gcp/taaops-e9943412868a.json
-                        cp "$GCP_CREDS" saopaulo/taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > Tokyo/taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > newyork_gcp/taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > saopaulo/taaops-e9943412868a.json
                         
                         # Copy GCP certificates
                         mkdir -p newyork_gcp/certs
@@ -121,10 +125,10 @@ pipeline {
                         source "$SECRETS_FILE"
                         
                         # Copy GCP credentials to all stack directories
-                        cp "$GCP_CREDS" taaops-e9943412868a.json
-                        cp "$GCP_CREDS" Tokyo/taaops-e9943412868a.json
-                        cp "$GCP_CREDS" newyork_gcp/taaops-e9943412868a.json
-                        cp "$GCP_CREDS" saopaulo/taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > Tokyo/taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > newyork_gcp/taaops-e9943412868a.json
+                        cat "$GCP_CREDS" > saopaulo/taaops-e9943412868a.json
                         
                         # Copy GCP certificates
                         mkdir -p newyork_gcp/certs
