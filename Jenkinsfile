@@ -97,7 +97,6 @@ pipeline {
                         AWS_REGION=${AWS_REGION} \
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
                         AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-                        AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
                         ./terraform_destroy.sh
                       """
                     } else {
@@ -108,7 +107,6 @@ pipeline {
                         AWS_REGION=${AWS_REGION} \
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
                         AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-                        AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
                         ./terraform_apply.sh
                       """
                     }
