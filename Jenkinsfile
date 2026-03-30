@@ -86,7 +86,10 @@ pipeline {
             steps {
                 withCredentials([
                   [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds'],
-                  file(credentialsId: 'secrets-env', variable: 'SECRETS_FILE')
+                  file(credentialsId: 'secrets-env', variable: 'SECRETS_FILE'),
+                  file(credentialsId: 'gcp-credentials-json', variable: 'GCP_CREDS'),
+                  file(credentialsId: 'gcp-nihonmachi-cert', variable: 'GCP_CERT'),
+                  file(credentialsId: 'gcp-nihonmachi-key', variable: 'GCP_KEY')
                 ]) {
                   script {
                     if (params.TERRAFORM_ACTION == 'destroy') {
@@ -94,6 +97,13 @@ pipeline {
                       sh """
                         chmod +x terraform_destroy.sh
                         source "$SECRETS_FILE"
+                        
+                        # Copy GCP credentials to expected locations
+                        cp "$GCP_CREDS" taaops-e9943412868a.json
+                        mkdir -p newyork_gcp/certs
+                        cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
+                        cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
+                        
                         AWS_REGION=${AWS_REGION} \
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
                         AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
@@ -104,6 +114,13 @@ pipeline {
                       sh """
                         chmod +x terraform_apply.sh
                         source "$SECRETS_FILE"
+                        
+                        # Copy GCP credentials to expected locations
+                        cp "$GCP_CREDS" taaops-e9943412868a.json
+                        mkdir -p newyork_gcp/certs
+                        cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
+                        cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
+                        
                         AWS_REGION=${AWS_REGION} \
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
                         AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
