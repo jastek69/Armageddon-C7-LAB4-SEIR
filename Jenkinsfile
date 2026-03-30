@@ -1,5 +1,24 @@
 pipeline {
     agent any
+    
+    parameters {
+        choice(
+            name: 'TERRAFORM_ACTION',
+            choices: ['apply', 'destroy'],
+            description: 'Choose whether to deploy (apply) or destroy infrastructure'
+        )
+        booleanParam(
+            name: 'SKIP_SAST',
+            defaultValue: false,
+            description: 'Skip Static Code Analysis stage (useful for destroy operations)'
+        )
+        booleanParam(
+            name: 'SKIP_SNYK',
+            defaultValue: false,
+            description: 'Skip Snyk Security Scan (useful for destroy operations)'
+        )
+    }
+    
     environment {
         AWS_REGION        = 'us-west-1'
         SONARQUBE_URL     = "https://sonarcloud.io"
@@ -27,6 +46,9 @@ pipeline {
         }
 
         stage('Static Code Analysis (SAST)') {
+            when {
+                expression { params.SKIP_SAST == false }
+            }
             steps {
                 withCredentials([string(credentialsId: 'SONARQUBE_TOKEN', variable: 'SONAR_TOKEN')]) {
                     sh """
@@ -41,35 +63,14 @@ pipeline {
         }
 
         stage('Snyk Security Scan') {
+            when {
+                expression { params.SKIP_SNYK == false }
+            }
             steps {
                 withCredentials([string(credentialsId: 'SNYK_AUTH_TOKEN', variable: 'SNYK_TOKEN')]) {
                     sh """
                       snyk auth ${SNYK_TOKEN}
                       snyk monitor || echo 'No supported files found, monitoring skipped.'
-                    """
-                }
-            }
-        }
-
-        stage('Prepare GCP Certificates') {
-            steps {
-                withCredentials([
-                    file(credentialsId: 'gcp-nihonmachi-cert', variable: 'GCP_CERT_FILE'),
-                    file(credentialsId: 'gcp-nihonmachi-key', variable: 'GCP_KEY_FILE'),
-                    file(credentialsId: 'gcp-credentials-json', variable: 'GCP_CREDS_FILE')
-                ]) {
-                    sh """
-                        mkdir -p newyork_gcp/certs
-                        cp "\$GCP_CERT_FILE" newyork_gcp/certs/nihonmachi-ilb.crt
-                        cp "\$GCP_KEY_FILE" newyork_gcp/certs/nihonmachi-ilb.key
-                        chmod 600 newyork_gcp/certs/nihonmachi-ilb.key
-                        
-                        # Copy GCP credentials JSON file
-                        cp "\$GCP_CREDS_FILE" newyork_gcp/taaops-e9943412868a.json
-                        chmod 600 newyork_gcp/taaops-e9943412868a.json
-                        
-                        ls -la newyork_gcp/certs/
-                        ls -la newyork_gcp/*.json
                     """
                 }
             }
@@ -87,20 +88,39 @@ pipeline {
                   [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds'],
                   file(credentialsId: 'secrets-env', variable: 'SECRETS_FILE')
                 ]) {
-                  sh """
-                    chmod +x terraform_apply.sh
-                    source "$SECRETS_FILE"
-                    AWS_REGION=${AWS_REGION} \
-                    AWS_ACCESS_KEY_ID=\${AWS_ACCESS_KEY_ID} \
-                    AWS_SECRET_ACCESS_KEY=\${AWS_SECRET_ACCESS_KEY} \
-                    AWS_SESSION_TOKEN=\${AWS_SESSION_TOKEN:-""} \
-                    ./terraform_apply.sh
-                  """
+                  script {
+                    if (params.TERRAFORM_ACTION == 'destroy') {
+                      echo "=== DESTROYING INFRASTRUCTURE ==="
+                      sh """
+                        chmod +x terraform_destroy.sh
+                        source "$SECRETS_FILE"
+                        AWS_REGION=${AWS_REGION} \
+                        AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+                        AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+                        AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
+                        ./terraform_destroy.sh
+                      """
+                    } else {
+                      echo "=== DEPLOYING INFRASTRUCTURE ==="
+                      sh """
+                        chmod +x terraform_apply.sh
+                        source "$SECRETS_FILE"
+                        AWS_REGION=${AWS_REGION} \
+                        AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+                        AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+                        AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
+                        ./terraform_apply.sh
+                      """
+                    }
+                  }
                 }
             }
         }
 
         stage('Deploy to S3') {
+            when {
+                expression { params.TERRAFORM_ACTION == 'apply' }
+            }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
                     sh '''
@@ -113,8 +133,24 @@ pipeline {
     }
 
     post {
-        success { echo 'Terraform deployment completed successfully!' }
-        failure { echo 'Terraform deployment failed!' }
+        success { 
+            script {
+                if (params.TERRAFORM_ACTION == 'destroy') {
+                    echo 'Infrastructure destruction completed successfully!'
+                } else {
+                    echo 'Terraform deployment completed successfully!'
+                }
+            }
+        }
+        failure { 
+            script {
+                if (params.TERRAFORM_ACTION == 'destroy') {
+                    echo 'Infrastructure destruction failed!'
+                } else {
+                    echo 'Terraform deployment failed!'
+                }
+            }
+        }
     }
 }
 
