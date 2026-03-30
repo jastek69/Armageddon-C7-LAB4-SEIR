@@ -51,6 +51,23 @@ pipeline {
             }
         }
 
+        stage('Prepare GCP Certificates') {
+            steps {
+                withCredentials([
+                    file(credentialsId: 'gcp-nihonmachi-cert', variable: 'GCP_CERT_FILE'),
+                    file(credentialsId: 'gcp-nihonmachi-key', variable: 'GCP_KEY_FILE')
+                ]) {
+                    sh """
+                        mkdir -p newyork_gcp/certs
+                        cp "\$GCP_CERT_FILE" newyork_gcp/certs/nihonmachi-ilb.crt
+                        cp "\$GCP_KEY_FILE" newyork_gcp/certs/nihonmachi-ilb.key
+                        chmod 600 newyork_gcp/certs/nihonmachi-ilb.key
+                        ls -la newyork_gcp/certs/
+                    """
+                }
+            }
+        }
+
         stage('Initialize Terraform') {
             steps {
                 sh 'terraform init'

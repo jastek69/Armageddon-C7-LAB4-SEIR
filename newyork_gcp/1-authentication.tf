@@ -9,14 +9,14 @@ provider "awscc" {
 }
 
 provider "google" {
-  credentials = "taaops-e9943412868a.json"    # Your JSON Key Here
+  credentials = file(var.gcp_credentials)    # GCP credentials from variable
   project     = var.project_id
   region      = var.region
   zone        = var.zone
 }
 
 provider "google-beta" {
-  credentials = "taaops-e9943412868a.json"
+  credentials = file(var.gcp_credentials)
   project     = var.project_id
   region      = var.region
   zone        = var.zone

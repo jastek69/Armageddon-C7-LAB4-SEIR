@@ -1,6 +1,11 @@
 # Local .terraform directories
 **/.terraform/*
 
+# Private certificates and keys (never commit production certs/keys)
+certs/
+*.key
+*.crt
+*.pem
 
 # Terraform files are ignored for this lab. If you want to commit Terraform code later,
 # comment out the next line.

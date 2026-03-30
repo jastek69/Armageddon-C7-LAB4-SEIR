@@ -4,6 +4,12 @@ variable "project_id" {
   default     = "taaops"                   # Your GCP Project ID
 }
 
+variable "gcp_credentials" {
+  description = "GCP service account credentials JSON file path or content"
+  type        = string
+  sensitive   = true
+}
+
 variable "region" {
   description = "GCP Region"
   type        = string
