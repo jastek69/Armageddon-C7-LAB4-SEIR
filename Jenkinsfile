@@ -55,14 +55,21 @@ pipeline {
             steps {
                 withCredentials([
                     file(credentialsId: 'gcp-nihonmachi-cert', variable: 'GCP_CERT_FILE'),
-                    file(credentialsId: 'gcp-nihonmachi-key', variable: 'GCP_KEY_FILE')
+                    file(credentialsId: 'gcp-nihonmachi-key', variable: 'GCP_KEY_FILE'),
+                    file(credentialsId: 'gcp-credentials-json', variable: 'GCP_CREDS_FILE')
                 ]) {
                     sh """
                         mkdir -p newyork_gcp/certs
                         cp "\$GCP_CERT_FILE" newyork_gcp/certs/nihonmachi-ilb.crt
                         cp "\$GCP_KEY_FILE" newyork_gcp/certs/nihonmachi-ilb.key
                         chmod 600 newyork_gcp/certs/nihonmachi-ilb.key
+                        
+                        # Copy GCP credentials JSON file
+                        cp "\$GCP_CREDS_FILE" newyork_gcp/taaops-e9943412868a.json
+                        chmod 600 newyork_gcp/taaops-e9943412868a.json
+                        
                         ls -la newyork_gcp/certs/
+                        ls -la newyork_gcp/*.json
                     """
                 }
             }
