@@ -98,8 +98,13 @@ pipeline {
                         chmod +x terraform_destroy.sh
                         source "$SECRETS_FILE"
                         
-                        # Copy GCP credentials to expected locations
+                        # Copy GCP credentials to all stack directories
                         cp "$GCP_CREDS" taaops-e9943412868a.json
+                        cp "$GCP_CREDS" Tokyo/taaops-e9943412868a.json
+                        cp "$GCP_CREDS" newyork_gcp/taaops-e9943412868a.json
+                        cp "$GCP_CREDS" saopaulo/taaops-e9943412868a.json
+                        
+                        # Copy GCP certificates
                         mkdir -p newyork_gcp/certs
                         cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
                         cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
@@ -115,8 +120,13 @@ pipeline {
                         chmod +x terraform_apply.sh
                         source "$SECRETS_FILE"
                         
-                        # Copy GCP credentials to expected locations
+                        # Copy GCP credentials to all stack directories
                         cp "$GCP_CREDS" taaops-e9943412868a.json
+                        cp "$GCP_CREDS" Tokyo/taaops-e9943412868a.json
+                        cp "$GCP_CREDS" newyork_gcp/taaops-e9943412868a.json
+                        cp "$GCP_CREDS" saopaulo/taaops-e9943412868a.json
+                        
+                        # Copy GCP certificates
                         mkdir -p newyork_gcp/certs
                         cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
                         cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
