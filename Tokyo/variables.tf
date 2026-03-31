@@ -79,7 +79,7 @@ variable "admin_ssh_cidr" {
 variable "ec2_ami_id" {
   description = "AMI ID for the EC2 app host."
   type        = string
-  default     = "ami-0ebf411a80b6b22cb"
+  default     = "ami-0b4a1b07f9ca13717"
 }
 
 variable "ec2_instance_type" {

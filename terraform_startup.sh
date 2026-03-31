@@ -172,6 +172,28 @@ for entry in "${orphaned_log_groups[@]}"; do
   fi
 done
 
+# Stage -0.5: Import orphaned S3 buckets (similar to log groups)
+echo ""
+echo "=== Pre-flight: checking for orphaned S3 buckets ==="
+orphaned_s3_buckets=(
+  "aws_s3_bucket.tokyo_backend_logs:tokyo-backend-logs-015195098145:ap-northeast-1"
+)
+for entry in "${orphaned_s3_buckets[@]}"; do
+  resource="${entry%%:*}"; rest="${entry#*:}"; bucket="${rest%%:*}"; region="${rest##*:}"
+  exists=$(aws s3api head-bucket --bucket "$bucket" --region "$region" 2>/dev/null && echo "true" || echo "false")
+  if [[ "$exists" == "true" ]]; then
+    if terraform -chdir=Tokyo state list 2>/dev/null | grep -q "^${resource}$"; then
+      echo "  $bucket — already in state, skipping."
+    else
+      echo "  $bucket — exists in AWS but not in state; importing..."
+      terraform -chdir=Tokyo import "$resource" "$bucket" || true
+      echo "  Import complete."
+    fi
+  else
+    echo "  $bucket — not in AWS (fresh deploy), skipping."
+  fi
+done
+
 # Stage 0: GCP seed (HA VPN public IPs)
 run_apply_targets "newyork_gcp" "gcp-seed.tfplan" \
   "google_compute_network.nihonmachi-vpc" \
