@@ -82,6 +82,31 @@ pipeline {
             }
         }
 
+        /*
+         * This stage is specifically for deploying the Tokyo environment, which requires assuming multiple roles.
+         * It uses a helper script to assume the necessary roles before running Terraform commands.
+         * TO:DO: Refactor this to be more dynamic and reusable for other environments if needed.
+         
+        stage('Terraform Deploy - Tokyo') {
+            steps {
+                sh """
+                    # Get role ARNs from jenkins infrastructure
+                    COMPUTE_ROLE="arn:aws:iam::015195098145:role/jenkins-assume-compute-role"
+                    SECURITY_ROLE="arn:aws:iam::015195098145:role/jenkins-assume-security-role"
+                    APP_ROLE="arn:aws:iam::015195098145:role/jenkins-assume-application-role"
+      
+                # Assume all three roles (Tokyo needs all services)
+                source assume-role-helper.sh "\$COMPUTE_ROLE" "jenkins-compute-deployment" "tokyo-deploy"
+      
+                cd Tokyo/
+                terraform init -upgrade
+                terraform plan
+                terraform apply -auto-approve
+                """
+            }
+        }
+    */
+    
         stage('Terraform Deploy') {
             steps {
                 withCredentials([
