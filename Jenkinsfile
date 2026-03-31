@@ -98,20 +98,14 @@ pipeline {
                         chmod +x terraform_destroy.sh
                         source "$SECRETS_FILE"
                         
-                        # Debug and fix permissions
-                        echo "Current directory: \$(pwd)"
-                        ls -la | head -5
+                        # Set up GCP credential paths
+                        export GOOGLE_APPLICATION_CREDENTIALS="$GCP_CREDS"
+                        export TF_VAR_gcp_credentials="$GCP_CREDS"
                         
-                        # Copy GCP credentials to all stack directories
-                        cat "$GCP_CREDS" > taaops-e9943412868a.json
-                        cat "$GCP_CREDS" > Tokyo/taaops-e9943412868a.json
-                        cat "$GCP_CREDS" > newyork_gcp/taaops-e9943412868a.json
-                        cat "$GCP_CREDS" > saopaulo/taaops-e9943412868a.json
-                        
-                        # Copy GCP certificates
+                        # Create symlinks for certificates
                         mkdir -p newyork_gcp/certs
-                        cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
-                        cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
+                        ln -sf "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt || cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
+                        ln -sf "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key || cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
                         
                         AWS_REGION=${AWS_REGION} \
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
@@ -124,16 +118,14 @@ pipeline {
                         chmod +x terraform_apply.sh
                         source "$SECRETS_FILE"
                         
-                        # Copy GCP credentials to all stack directories
-                        cat "$GCP_CREDS" > taaops-e9943412868a.json
-                        cat "$GCP_CREDS" > Tokyo/taaops-e9943412868a.json
-                        cat "$GCP_CREDS" > newyork_gcp/taaops-e9943412868a.json
-                        cat "$GCP_CREDS" > saopaulo/taaops-e9943412868a.json
+                        # Set up GCP credential paths
+                        export GOOGLE_APPLICATION_CREDENTIALS="$GCP_CREDS"
+                        export TF_VAR_gcp_credentials="$GCP_CREDS"
                         
-                        # Copy GCP certificates
+                        # Create symlinks for certificates
                         mkdir -p newyork_gcp/certs
-                        cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
-                        cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
+                        ln -sf "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt || cp "$GCP_CERT" newyork_gcp/certs/nihonmachi-ilb.crt
+                        ln -sf "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key || cp "$GCP_KEY" newyork_gcp/certs/nihonmachi-ilb.key
                         
                         AWS_REGION=${AWS_REGION} \
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
