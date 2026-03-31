@@ -152,12 +152,20 @@ for entry in "${orphaned_log_groups[@]}"; do
     --output text 2>/dev/null || true)
   if [[ -n "$exists" ]]; then
     if terraform -chdir=Tokyo state list 2>/dev/null | grep -q "^${resource}$"; then
-      echo "  $log_group — in state, skipping."
+      echo "  $log_group — already in state, skipping."
     else
       echo "  $log_group — exists in AWS but not in state; importing..."
-      MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" \
-        terraform -chdir=Tokyo import "$resource" "$log_group"
-      echo "  Import complete."
+      import_output=$(MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" \
+        terraform -chdir=Tokyo import "$resource" "$log_group" 2>&1)
+      import_status=$?
+      if [[ $import_status -eq 0 ]]; then
+        echo "  Import complete."
+      elif echo "$import_output" | grep -q "Resource already managed"; then
+        echo "  Resource already in state (detected during import), skipping."
+      else
+        echo "  Import failed: $import_output"
+        exit 1
+      fi
     fi
   else
     echo "  $log_group — not in AWS (fresh deploy), skipping."
