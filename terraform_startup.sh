@@ -141,7 +141,7 @@ echo "=== Pre-flight: checking for orphaned log groups ==="
 terraform -chdir=Tokyo init -upgrade -no-color > /dev/null 2>&1 || true
 
 orphaned_log_groups=(
-  "aws_cloudwatch_log_group.tokyo_rds_flowlogs:/vpc/flowlogs/tokyo-rds:ap-northeast-1"
+  # "aws_cloudwatch_log_group.tokyo_rds_flowlogs:/vpc/flowlogs/tokyo-rds:ap-northeast-1"  # Removed from state manually - skip
 )
 for entry in "${orphaned_log_groups[@]}"; do
   resource="${entry%%:*}"; rest="${entry#*:}"; log_group="${rest%%:*}"; region="${rest##*:}"
