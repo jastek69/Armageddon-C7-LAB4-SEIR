@@ -30,7 +30,7 @@ pipeline {
     stages {
         stage('Set AWS Credentials') {
             steps {
-                                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
                     sh '''
                       echo "Caller identity:"
                       aws sts get-caller-identity
@@ -44,7 +44,7 @@ pipeline {
                                 expression { params.TERRAFORM_ACTION == 'apply' }
                         }
                         steps {
-                                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
                                         sh '''
                                                 set -euo pipefail
                                                 cat > /tmp/jenkins-missing-perms.json <<'JSON'
@@ -139,7 +139,7 @@ JSON
         stage('Terraform Deploy') {
             steps {
                 withCredentials([
-                                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials'],
+                                                                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds'],
                   file(credentialsId: 'secrets-env', variable: 'SECRETS_FILE'),
                   file(credentialsId: 'gcp-credentials-json', variable: 'GCP_CREDS'),
                   file(credentialsId: 'gcp-nihonmachi-cert', variable: 'GCP_CERT'),
