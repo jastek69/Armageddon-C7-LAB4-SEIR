@@ -56,7 +56,7 @@ variable "tokyo_state_bucket" {
 variable "tokyo_state_key" {
   description = "S3 key for Tokyo remote state."
   type        = string
-  default     = "tokyo/terraform.tfstate"
+  default     = "tokyo/tk022126terraform.tfstate"
 }
 
 variable "tokyo_state_region" {
