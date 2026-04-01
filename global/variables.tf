@@ -57,6 +57,7 @@ variable "tokyo_state_key" {
   description = "S3 key for Tokyo remote state."
   type        = string
   default     = "tokyo/tk022126terraform.tfstate"
+  # TODO: After destroying all infrastructure, change to "tokyo/terraform.tfstate" to match standardized backend keys
 }
 
 variable "tokyo_state_region" {
