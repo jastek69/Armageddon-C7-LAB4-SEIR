@@ -68,6 +68,29 @@ seed_gcp_vpn_outputs() {
   echo "  Seed outputs verified: IF0=$GCP_HA_VPN_IF0, IF1=$GCP_HA_VPN_IF1"
 }
 
+assert_tokyo_vpn_outputs() {
+  echo ""
+  echo "=== Verifying Tokyo exported AWS VPN tunnel IPs ==="
+
+  local t1 t2 t3 t4
+  t1="$(terraform -chdir=Tokyo output -raw gcp_tgw_vpn1_tunnel1_address 2>/dev/null || true)"
+  t2="$(terraform -chdir=Tokyo output -raw gcp_tgw_vpn1_tunnel2_address 2>/dev/null || true)"
+  t3="$(terraform -chdir=Tokyo output -raw gcp_tgw_vpn2_tunnel1_address 2>/dev/null || true)"
+  t4="$(terraform -chdir=Tokyo output -raw gcp_tgw_vpn2_tunnel2_address 2>/dev/null || true)"
+
+  if [[ -z "$t1" || -z "$t2" || -z "$t3" || -z "$t4" || "$t1" == "null" || "$t2" == "null" || "$t3" == "null" || "$t4" == "null" ]]; then
+    echo "ERROR: Tokyo did not export required VPN tunnel IP outputs."
+    echo "  gcp_tgw_vpn1_tunnel1_address='$t1'"
+    echo "  gcp_tgw_vpn1_tunnel2_address='$t2'"
+    echo "  gcp_tgw_vpn2_tunnel1_address='$t3'"
+    echo "  gcp_tgw_vpn2_tunnel2_address='$t4'"
+    echo "New York external VPN gateway cannot be created without these values."
+    exit 1
+  fi
+
+  echo "  Tokyo VPN outputs verified."
+}
+
 
 
 dump_outputs() {
@@ -228,11 +251,15 @@ echo "Waiting ${WAIT_TIME}s for GCP HA VPN to stabilize..."
 sleep "$WAIT_TIME"
 seed_gcp_vpn_outputs
 
+# Tokyo tfvars is gitignored; enforce VPN toggle in pipeline runtime.
+export TF_VAR_enable_aws_gcp_tgw_vpn=true
+
 # Stage 1: Tokyo
 run_apply "Tokyo" "tokyo.tfplan"
 echo "Waiting ${WAIT_TIME}s for Tokyo resources to stabilize..."
 sleep "$WAIT_TIME"
 assert_tokyo_state
+assert_tokyo_vpn_outputs
 
 # Stage 2: Global
 run_apply "global" "global.tfplan"
