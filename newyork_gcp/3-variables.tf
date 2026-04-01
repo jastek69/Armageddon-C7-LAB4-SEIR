@@ -31,7 +31,8 @@ variable "tokyo_state_bucket" {
 variable "tokyo_state_key" {
   description = "S3 key for Tokyo Terraform state file."
   type        = string
-  default     = "tokyo/terraform.tfstate"
+  default     = "tokyo/tk022126terraform.tfstate"
+  # TODO: After destroying all infrastructure, change to "tokyo/terraform.tfstate" to match standardized backend keys
 }
 
 variable "tokyo_state_region" {
