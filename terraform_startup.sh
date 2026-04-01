@@ -14,6 +14,11 @@ WAIT_TIME=30
 TGW_WAIT_TIME=120
 DELIVERABLES_DIR="LAB4-DELIVERABLES"
 
+# Fix file ownership - Jenkins sometimes creates files as root
+echo ""
+echo "=== Fixing file ownership ==="
+sudo chown -R jenkins:jenkins /var/lib/jenkins/workspace/Armageddon-Pipeline/ 2>/dev/null || true
+
 run_apply() {
   local stack_dir="$1"
   local plan_file="$2"
@@ -41,7 +46,6 @@ run_apply_targets() {
   terraform apply -auto-approve "$plan_file"
   cd - >/dev/null
 }
-
 
 
 dump_outputs() {
