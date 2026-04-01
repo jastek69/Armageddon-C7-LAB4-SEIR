@@ -30,7 +30,7 @@ pipeline {
     stages {
         stage('Set AWS Credentials') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+                                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
                     sh '''
                       echo "Caller identity:"
                       aws sts get-caller-identity
@@ -38,6 +38,52 @@ pipeline {
                 }
             }
         }
+
+                stage('IAM Hotfix (Temporary)') {
+                        when {
+                                expression { params.TERRAFORM_ACTION == 'apply' }
+                        }
+                        steps {
+                                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                                        sh '''
+                                                set -euo pipefail
+                                                cat > /tmp/jenkins-missing-perms.json <<'JSON'
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "route53:CreateHostedZone",
+                "route53:DeleteHostedZone",
+                "route53:ListHostedZones",
+                "route53:GetHostedZone",
+                "route53:ListResourceRecordSets",
+                "route53:GetChange",
+                "route53:ChangeResourceRecordSets",
+                "route53:ListTagsForResource",
+                "ec2:AssociateTransitGatewayRouteTable",
+                "ec2:DisassociateTransitGatewayRouteTable",
+                "ec2:EnableTransitGatewayRouteTablePropagation",
+                "ec2:DisableTransitGatewayRouteTablePropagation",
+                "ec2:CreateTransitGatewayRoute",
+                "ec2:DeleteTransitGatewayRoute"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+JSON
+
+                                                aws sts get-caller-identity
+                                                aws iam put-user-policy \
+                                                    --user-name jenkins-programmatic-user \
+                                                    --policy-name jenkins-hotfix-tgw-route53 \
+                                                    --policy-document file:///tmp/jenkins-missing-perms.json
+                                        '''
+                                }
+                        }
+                }
 
         stage('Checkout Code') {
             steps {
@@ -93,7 +139,7 @@ pipeline {
         stage('Terraform Deploy') {
             steps {
                 withCredentials([
-                  [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds'],
+                                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials'],
                   file(credentialsId: 'secrets-env', variable: 'SECRETS_FILE'),
                   file(credentialsId: 'gcp-credentials-json', variable: 'GCP_CREDS'),
                   file(credentialsId: 'gcp-nihonmachi-cert', variable: 'GCP_CERT'),
@@ -153,7 +199,7 @@ pipeline {
                 expression { params.TERRAFORM_ACTION == 'apply' }
             }
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
                     sh '''
                         pip3 install --user boto3
                         python3 deploy-to-s3.py --source-dir ./S3-DELIVERABLES --delete
