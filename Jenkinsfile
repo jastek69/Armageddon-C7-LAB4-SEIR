@@ -76,37 +76,20 @@ pipeline {
             }
         }
 
-        stage('Initialize Terraform') {
+        stage('Scaffolding Validation') {
             steps {
-                sh 'terraform init'
+                sh '''
+                    set -euo pipefail
+                    test -f terraform_startup.sh
+                    test -f terraform_apply.sh
+                    test -d Tokyo
+                    test -d global
+                    test -d newyork_gcp
+                    test -d saopaulo
+                '''
             }
         }
 
-        /*
-         * This stage is specifically for deploying the Tokyo environment, which requires assuming multiple roles.
-         * It uses a helper script to assume the necessary roles before running Terraform commands.
-         * TO:DO: Refactor this to be more dynamic and reusable for other environments if needed.
-         
-        stage('Terraform Deploy - Tokyo') {
-            steps {
-                sh """
-                    # Get role ARNs from jenkins infrastructure
-                    COMPUTE_ROLE="arn:aws:iam::015195098145:role/jenkins-assume-compute-role"
-                    SECURITY_ROLE="arn:aws:iam::015195098145:role/jenkins-assume-security-role"
-                    APP_ROLE="arn:aws:iam::015195098145:role/jenkins-assume-application-role"
-      
-                # Assume all three roles (Tokyo needs all services)
-                source assume-role-helper.sh "\$COMPUTE_ROLE" "jenkins-compute-deployment" "tokyo-deploy"
-      
-                cd Tokyo/
-                terraform init -upgrade
-                terraform plan
-                terraform apply -auto-approve
-                """
-            }
-        }
-    */
-    
         stage('Terraform Deploy') {
             steps {
                 withCredentials([
@@ -119,7 +102,8 @@ pipeline {
                   script {
                     if (params.TERRAFORM_ACTION == 'destroy') {
                       echo "=== DESTROYING INFRASTRUCTURE ==="
-                      sh """
+                                            sh '''
+                                                set -euo pipefail
                         chmod +x terraform_destroy.sh
                         source "$SECRETS_FILE"
                         
@@ -136,11 +120,12 @@ pipeline {
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
                         AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
                         ./terraform_destroy.sh
-                      """
+                                            '''
                     } else {
-                      echo "=== DEPLOYING INFRASTRUCTURE ==="
-                      sh """
-                        chmod +x terraform_apply.sh
+                                            echo "=== DEPLOYING INFRASTRUCTURE (STAGED SCAFFOLD) ==="
+                                            sh '''
+                                                set -euo pipefail
+                                                chmod +x terraform_startup.sh
                         source "$SECRETS_FILE"
                         
                         # Set up GCP credential paths
@@ -155,8 +140,8 @@ pipeline {
                         AWS_REGION=${AWS_REGION} \
                         AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
                         AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-                        ./terraform_apply.sh
-                      """
+                                                ./terraform_startup.sh
+                                            '''
                     }
                   }
                 }
