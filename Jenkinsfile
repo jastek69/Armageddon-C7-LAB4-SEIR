@@ -76,10 +76,13 @@ pipeline {
 JSON
 
                                                 aws sts get-caller-identity
-                                                aws iam put-user-policy \
+                                                if ! aws iam put-user-policy \
                                                     --user-name jenkins-programmatic-user \
                                                     --policy-name jenkins-hotfix-tgw-route53 \
-                                                    --policy-document file:///tmp/jenkins-missing-perms.json
+                                                    --policy-document file:///tmp/jenkins-missing-perms.json; then
+                                                    echo "WARN: IAM hotfix skipped (missing iam:PutUserPolicy)."
+                                                    echo "WARN: Ask an admin principal to attach TGW/Route53 permissions to jenkins-programmatic-user."
+                                                fi
                                         '''
                                 }
                         }
