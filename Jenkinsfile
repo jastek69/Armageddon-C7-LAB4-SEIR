@@ -155,10 +155,38 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
                     sh '''
+                        set -euo pipefail
                         python3 -m ensurepip --upgrade 2>/dev/null || true
                         python3 -m pip install --user --quiet boto3
-                        if [ -f deploy-to-s3.py ]; then
-                            python3 deploy-to-s3.py --source-dir ./S3-DELIVERABLES --delete
+
+                        source_dir=""
+                        for candidate in ./S3-DELIVERABLES ./deliverables/S3-DELIVERABLES ./LAB4/S3-DELIVERABLES; do
+                            if [ -d "$candidate" ]; then
+                                source_dir="$candidate"
+                                break
+                            fi
+                        done
+                        if [ -z "$source_dir" ]; then
+                            source_dir=$(find . -maxdepth 5 -type d -name 'S3-DELIVERABLES' | head -n 1 || true)
+                        fi
+                        if [ -z "$source_dir" ]; then
+                            echo "WARN: No S3-DELIVERABLES directory found. Skipping Deploy to S3 stage."
+                            exit 0
+                        fi
+
+                        script_path=""
+                        for candidate in ./deploy-to-s3.py ./scripts/deploy-to-s3.py; do
+                            if [ -f "$candidate" ]; then
+                                script_path="$candidate"
+                                break
+                            fi
+                        done
+                        if [ -z "$script_path" ]; then
+                            script_path=$(find . -maxdepth 5 -type f -name 'deploy-to-s3.py' | head -n 1 || true)
+                        fi
+
+                        if [ -n "$script_path" ]; then
+                            python3 "$script_path" --source-dir "$source_dir" --delete
                         else
                             echo "WARN: deploy-to-s3.py not found, using aws s3 sync fallback"
                             bucket_name=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, 'jenkins-bucket-')].Name | [0]" --output text)
@@ -166,7 +194,7 @@ pipeline {
                                 echo "ERROR: Could not find target bucket with prefix 'jenkins-bucket-'"
                                 exit 1
                             fi
-                            aws s3 sync ./S3-DELIVERABLES "s3://$bucket_name/" --delete
+                            aws s3 sync "$source_dir" "s3://$bucket_name/" --delete
                         fi
                     '''
                 }
