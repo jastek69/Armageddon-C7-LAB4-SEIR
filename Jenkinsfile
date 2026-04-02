@@ -202,7 +202,7 @@ JSON
                 expression { params.TERRAFORM_ACTION == 'apply' }
             }
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
                     sh '''
                         pip3 install --user boto3
                         python3 deploy-to-s3.py --source-dir ./S3-DELIVERABLES --delete
