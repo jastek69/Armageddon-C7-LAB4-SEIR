@@ -39,55 +39,6 @@ pipeline {
             }
         }
 
-                stage('IAM Hotfix (Temporary)') {
-                        when {
-                                expression { params.TERRAFORM_ACTION == 'apply' }
-                        }
-                        steps {
-                                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
-                                        sh '''
-                                                set -euo pipefail
-                                                cat > /tmp/jenkins-missing-perms.json <<'JSON'
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "route53:CreateHostedZone",
-                "route53:DeleteHostedZone",
-                "route53:ListHostedZones",
-                "route53:GetHostedZone",
-                "route53:ListResourceRecordSets",
-                "route53:GetChange",
-                "route53:ChangeResourceRecordSets",
-                "route53:ListTagsForResource",
-                "ec2:AssociateTransitGatewayRouteTable",
-                "ec2:DisassociateTransitGatewayRouteTable",
-                "ec2:EnableTransitGatewayRouteTablePropagation",
-                "ec2:DisableTransitGatewayRouteTablePropagation",
-                "ec2:CreateTransitGatewayRoute",
-                "ec2:DeleteTransitGatewayRoute"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-JSON
-
-                                                aws sts get-caller-identity
-                                                if ! aws iam put-user-policy \
-                                                    --user-name jenkins-programmatic-user \
-                                                    --policy-name jenkins-hotfix-tgw-route53 \
-                                                    --policy-document file:///tmp/jenkins-missing-perms.json; then
-                                                    echo "WARN: IAM hotfix skipped (missing iam:PutUserPolicy)."
-                                                    echo "WARN: Ask an admin principal to attach TGW/Route53 permissions to jenkins-programmatic-user."
-                                                fi
-                                        '''
-                                }
-                        }
-                }
-
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/jastek69/Armageddon-C7-LAB4-SEIR.git'
@@ -206,7 +157,17 @@ JSON
                     sh '''
                         python3 -m ensurepip --upgrade 2>/dev/null || true
                         python3 -m pip install --user --quiet boto3
-                        python3 deploy-to-s3.py --source-dir ./S3-DELIVERABLES --delete
+                        if [ -f deploy-to-s3.py ]; then
+                            python3 deploy-to-s3.py --source-dir ./S3-DELIVERABLES --delete
+                        else
+                            echo "WARN: deploy-to-s3.py not found, using aws s3 sync fallback"
+                            bucket_name=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, 'jenkins-bucket-')].Name | [0]" --output text)
+                            if [ -z "$bucket_name" ] || [ "$bucket_name" = "None" ]; then
+                                echo "ERROR: Could not find target bucket with prefix 'jenkins-bucket-'"
+                                exit 1
+                            fi
+                            aws s3 sync ./S3-DELIVERABLES "s3://$bucket_name/" --delete
+                        fi
                     '''
                 }
             }
